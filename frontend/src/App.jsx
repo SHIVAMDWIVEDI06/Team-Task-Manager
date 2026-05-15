@@ -1,0 +1,65 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { ThemeProvider, CssBaseline } from '@mui/material';
+import theme from './theme';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { Toaster } from 'react-hot-toast';
+
+// Layouts & Pages
+import MainLayout from './components/Layout/MainLayout';
+import Dashboard from './pages/Dashboard';
+import Projects from './pages/Projects';
+import ProjectDetail from './pages/ProjectDetail';
+import Login from './components/Login';
+import Signup from './components/Signup';
+import Team from './pages/Team';
+
+// Protected Route Wrapper
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return null; // Or a full screen loader
+  if (!user) return <Navigate to="/login" />;
+  return children;
+};
+
+function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <AuthProvider>
+        <Toaster position="top-right" />
+        <Router>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<LoginWrapper />} />
+            <Route path="/signup" element={<SignupWrapper />} />
+
+            {/* Private Routes */}
+            <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+              <Route index element={<Dashboard />} />
+              <Route path="projects" element={<Projects />} />
+              <Route path="projects/:projectId" element={<ProjectDetail />} />
+              <Route path="team" element={<Team />} />
+            </Route>
+
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
+  );
+}
+
+// Wrappers to use useNavigate
+const LoginWrapper = () => {
+  const navigate = useNavigate();
+  return <Login onToggleMode={() => navigate('/signup')} />;
+};
+
+const SignupWrapper = () => {
+  const navigate = useNavigate();
+  return <Signup onToggleMode={() => navigate('/login')} />;
+};
+
+export default App;

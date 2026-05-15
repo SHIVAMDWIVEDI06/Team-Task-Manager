@@ -1,0 +1,125 @@
+import { useState } from 'react';
+import { 
+  Box, 
+  Button, 
+  TextField, 
+  Typography, 
+  Container, 
+  Paper,
+  Link,
+  CircularProgress,
+  InputAdornment,
+  IconButton
+} from '@mui/material';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+
+export default function Login({ onToggleMode }) {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    const result = await login(formData.email, formData.password);
+    if (result.success) {
+      navigate('/');
+    } else {
+      setError(result.error);
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Box sx={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      bgcolor: 'background.default',
+      backgroundImage: 'radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.05) 0, transparent 50%), radial-gradient(at 50% 0%, rgba(71, 85, 105, 0.05) 0, transparent 50%)'
+    }}>
+      <Container maxWidth="xs">
+        <Paper elevation={0} sx={{ p: 5, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
+          <Box sx={{ mb: 4, textAlign: 'center' }}>
+            <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>
+              Welcome Back
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Enter your credentials to access your dashboard.
+            </Typography>
+          </Box>
+          
+          {error && (
+            <Box sx={{ p: 1.5, mb: 3, bgcolor: 'error.light', borderRadius: 1.5, opacity: 0.8 }}>
+              <Typography color="error.dark" variant="caption" sx={{ fontWeight: 600 }}>{error}</Typography>
+            </Box>
+          )}
+
+          <Box component="form" onSubmit={handleSubmit}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              autoFocus
+              value={formData.email}
+              onChange={handleChange}
+              InputProps={{
+                startAdornment: <InputAdornment position="start"><Mail size={18} /></InputAdornment>,
+              }}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              value={formData.password}
+              onChange={handleChange}
+              InputProps={{
+                startAdornment: <InputAdornment position="start"><Lock size={18} /></InputAdornment>,
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              disabled={loading}
+              sx={{ py: 1.5, mt: 3, mb: 2, fontSize: '1rem' }}
+            >
+              {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
+            </Button>
+            <Box sx={{ textAlign: 'center', mt: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                Don't have an account?{' '}
+                <Link href="#" onClick={(e) => { e.preventDefault(); onToggleMode(); }} sx={{ fontWeight: 600, color: 'primary.main', textDecoration: 'none' }}>
+                  Sign Up
+                </Link>
+              </Typography>
+            </Box>
+          </Box>
+        </Paper>
+      </Container>
+    </Box>
+  );
+}
