@@ -3,7 +3,11 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import theme from './theme';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
+import { SearchProvider } from './context/SearchContext';
+import { FilterProvider } from './context/FilterContext';
 import { Toaster } from 'react-hot-toast';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Layouts & Pages
 import MainLayout from './components/Layout/MainLayout';
@@ -24,30 +28,49 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <AuthProvider>
-        <Toaster position="top-right" />
-        <Router>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/login" element={<LoginWrapper />} />
-            <Route path="/signup" element={<SignupWrapper />} />
+    <ErrorBoundary>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <AuthProvider>
+          <NotificationProvider>
+            <SearchProvider>
+              <FilterProvider>
+                <Toaster 
+                  position="top-right"
+                  toastOptions={{
+                    duration: 4000,
+                    style: {
+                      borderRadius: '12px',
+                      padding: '12px 16px',
+                      fontSize: '14px',
+                      fontWeight: '500',
+                    },
+                  }}
+                />
+                <Router>
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route path="/login" element={<LoginWrapper />} />
+                    <Route path="/signup" element={<SignupWrapper />} />
 
-            {/* Private Routes */}
-            <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-              <Route index element={<Dashboard />} />
-              <Route path="projects" element={<Projects />} />
-              <Route path="projects/:projectId" element={<ProjectDetail />} />
-              <Route path="team" element={<Team />} />
-            </Route>
+                    {/* Private Routes */}
+                    <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+                      <Route index element={<Dashboard />} />
+                      <Route path="projects" element={<Projects />} />
+                      <Route path="projects/:projectId" element={<ProjectDetail />} />
+                      <Route path="team" element={<Team />} />
+                    </Route>
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
-        </Router>
-      </AuthProvider>
-    </ThemeProvider>
+                    {/* Fallback */}
+                    <Route path="*" element={<Navigate to="/" />} />
+                  </Routes>
+                </Router>
+              </FilterProvider>
+            </SearchProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

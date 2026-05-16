@@ -1,207 +1,376 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
-import { 
-  Box, 
-  Drawer, 
-  List, 
-  ListItem, 
-  ListItemButton, 
-  ListItemIcon, 
-  ListItemText, 
-  Typography, 
-  IconButton,
+import {
   Avatar,
+  Box,
+  Button,
+  Chip,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
   Menu,
   MenuItem,
-  Tooltip,
-  Badge,
-  Divider
+  Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
-import { 
-  LayoutDashboard, 
-  FolderKanban, 
-  Users, 
-  LogOut, 
-  ChevronLeft,
-  Bell,
-  Search,
-  Plus
+import {
+  BookOpen,
+  Boxes,
+  FolderKanban,
+  LayoutDashboard,
+  LogOut,
+  Menu as MenuIcon,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Users,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import { SearchInput } from '../Search';
+import PremiumIcon from '../PremiumIcon';
 
-const drawerWidth = 280;
+const drawerWidth = 314;
+const collapsedWidth = 92;
+
+const navItems = [
+  { text: 'Dashboard', icon: <LayoutDashboard size={19} />, path: '/' },
+  { text: 'Projects', icon: <FolderKanban size={19} />, path: '/projects' },
+  { text: 'Team', icon: <Users size={19} />, path: '/team' },
+];
+
+const pageMeta = {
+  '/': { crumb: 'Pages / Dashboard', title: 'Dashboard' },
+  '/projects': { crumb: 'Pages / Projects', title: 'Projects' },
+  '/team': { crumb: 'Pages / Team', title: 'Team' },
+};
+
+function getPageMeta(pathname) {
+  if (pathname.startsWith('/projects/')) {
+    return { crumb: 'Pages / Projects / Board', title: 'Project Board' };
+  }
+  return pageMeta[pathname] || { crumb: 'Pages', title: 'Dashboard' };
+}
 
 export default function MainLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [open, setOpen] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
-
-  const menuItems = [
-    { text: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/' },
-    { text: 'My Projects', icon: <FolderKanban size={20} />, path: '/projects' },
-    { text: 'Team', icon: <Users size={20} />, path: '/team' },
-  ];
+  const meta = getPageMeta(location.pathname);
+  const sidebarOpen = isMobile || open;
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  const drawerContent = (
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 1.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 1.5, py: 2.5 }}>
+        <PremiumIcon tone="slate" size={40} radius="12px">
+          <FolderKanban size={21} />
+        </PremiumIcon>
+        {sidebarOpen && (
+          <Box>
+            <Typography sx={{ fontWeight: 900, color: '#2f4367', whiteSpace: 'nowrap', lineHeight: 1.1 }}>
+              TeamTask Manager
+            </Typography>
+            <Typography sx={{ color: '#8795ad', fontSize: '0.72rem', fontWeight: 800, mt: 0.3 }}>
+              Workspace OS
+            </Typography>
+          </Box>
+        )}
+      </Box>
+
+      {sidebarOpen && (
+        <Box
+          sx={{
+            mx: 1,
+            mb: 2,
+            p: 1.6,
+            borderRadius: '8px',
+            border: '1px solid #eef2f7',
+            background:
+              'linear-gradient(135deg, rgba(255, 242, 227, 0.9), rgba(255, 255, 255, 0.96))',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 1.2 }}>
+            <PremiumIcon tone="coral" size={34} radius="10px">
+              <Boxes size={17} />
+            </PremiumIcon>
+            <Box>
+              <Typography sx={{ color: '#2f4367', fontWeight: 900, fontSize: '0.86rem' }}>
+                Control Center
+              </Typography>
+              <Typography sx={{ color: '#70809d', fontWeight: 700, fontSize: '0.74rem' }}>
+                Projects, tasks, team
+              </Typography>
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
+            {['Live boards', 'Workload', 'Risks'].map((label) => (
+              <Chip
+                key={label}
+                label={label}
+                size="small"
+                sx={{
+                  height: 22,
+                  bgcolor: '#fff',
+                  color: '#63728f',
+                  border: '1px solid #eef2f7',
+                  fontWeight: 800,
+                  fontSize: '0.68rem',
+                }}
+              />
+            ))}
+          </Box>
+        </Box>
+      )}
+
+      <List sx={{ px: 0.5 }}>
+        {navItems.map((item) => {
+          const active =
+            item.path === '/'
+              ? location.pathname === '/'
+              : location.pathname.startsWith(item.path);
+
+          return (
+            <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
+              <ListItemButton
+                onClick={() => {
+                  navigate(item.path);
+                  setMobileOpen(false);
+                }}
+                sx={{
+                  minHeight: 52,
+                  borderRadius: '8px',
+                  px: 2,
+                  justifyContent: sidebarOpen ? 'flex-start' : 'center',
+                  bgcolor: active ? '#f6f8fb' : 'transparent',
+                  color: active ? '#fb5b3f' : '#63728f',
+                  '&:hover': { bgcolor: '#f6f8fb', color: '#fb5b3f' },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 0, mr: sidebarOpen ? 1.7 : 0 }}>
+                  <Box
+                    sx={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: '8px',
+                      display: 'grid',
+                      placeItems: 'center',
+                      color: active ? '#fff' : '#70809d',
+                      bgcolor: active ? '#fb5b3f' : '#f6f8fb',
+                      boxShadow: active ? '0 10px 20px rgba(251, 91, 63, 0.22)' : 'none',
+                    }}
+                  >
+                    {item.icon}
+                  </Box>
+                </ListItemIcon>
+                {sidebarOpen && (
+                  <Typography sx={{ fontWeight: active ? 800 : 700, fontSize: '0.94rem' }}>
+                    {item.text}
+                  </Typography>
+                )}
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
+      </List>
+
+      <Box sx={{ mt: 2, px: sidebarOpen ? 2.5 : 1.5 }}>
+        {sidebarOpen && (
+          <Typography sx={{ fontSize: '0.75rem', color: '#8795ad', fontWeight: 800, mb: 1.5 }}>
+            WORKSPACE
+          </Typography>
+        )}
+        <List disablePadding>
+          <ListItem disablePadding>
+            <ListItemButton
+              onClick={() => navigate('/projects')}
+              sx={{
+                minHeight: 44,
+                borderRadius: '8px',
+                px: sidebarOpen ? 1.5 : 0,
+                justifyContent: sidebarOpen ? 'flex-start' : 'center',
+                color: '#63728f',
+                '&:hover': { bgcolor: '#f6f8fb', color: '#fb5b3f' },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 0, mr: sidebarOpen ? 1.5 : 0 }}>
+                <PremiumIcon tone="green" size={30} radius="8px">
+                  <BookOpen size={16} />
+                </PremiumIcon>
+              </ListItemIcon>
+              {sidebarOpen && (
+                <Typography sx={{ fontSize: '0.88rem', fontWeight: 700 }}>
+                  Project Docs
+                </Typography>
+              )}
+            </ListItemButton>
+          </ListItem>
+        </List>
+      </Box>
+
+      <Box sx={{ mt: 'auto', p: 1 }}>
+        {sidebarOpen && (
+          <Box
+            sx={{
+              border: '1px solid #eef2f7',
+              borderRadius: '8px',
+              p: 2,
+              mb: 1.5,
+              textAlign: 'center',
+              bgcolor: '#fbfcff',
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1.5 }}>
+              <PremiumIcon tone="amber" size={54} radius="16px">
+                <FolderKanban size={24} />
+              </PremiumIcon>
+            </Box>
+            <Typography sx={{ fontWeight: 800, color: '#2f4367' }}>Need help?</Typography>
+            <Typography sx={{ fontSize: '0.78rem', color: '#70809d', mb: 1.5 }}>
+              Check your project boards
+            </Typography>
+            <Button fullWidth variant="contained" onClick={() => navigate('/projects')}>
+              Open Projects
+            </Button>
+          </Box>
+        )}
+        {!isMobile && (
+          <IconButton
+            onClick={() => setOpen(!open)}
+            sx={{
+              width: '100%',
+              borderRadius: '8px',
+              color: '#70809d',
+              bgcolor: '#f6f8fb',
+              '&:hover': { bgcolor: '#eef2f7' },
+            }}
+          >
+            {open ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
+          </IconButton>
+        )}
+      </Box>
+    </Box>
+  );
+
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: '#f8fafc' }}>
-      {/* Sidebar */}
-      <Drawer
-        variant="permanent"
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f5f7fb', position: 'relative', overflowX: 'hidden' }}>
+      <Box
+        className="argon-gradient"
         sx={{
-          width: open ? drawerWidth : 88,
+          position: 'fixed',
+          inset: '0 0 auto 0',
+          height: { xs: 260, md: 372 },
+          zIndex: 0,
+        }}
+      />
+
+      <Drawer
+        variant={isMobile ? 'temporary' : 'permanent'}
+        open={isMobile ? mobileOpen : true}
+        onClose={() => setMobileOpen(false)}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          width: isMobile ? drawerWidth : open ? drawerWidth : collapsedWidth,
           flexShrink: 0,
           '& .MuiDrawer-paper': {
-            width: open ? drawerWidth : 88,
-            boxSizing: 'border-box',
+            width: isMobile ? drawerWidth : open ? drawerWidth : collapsedWidth,
+            height: { xs: '100%', md: 'calc(100vh - 36px)' },
+            top: { xs: 0, md: 18 },
+            left: { xs: 0, md: 22 },
             border: 'none',
-            bgcolor: '#0f172a',
-            color: '#94a3b8',
-            transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            borderRadius: { xs: 0, md: '8px' },
+            boxShadow: '0 18px 38px rgba(47, 67, 103, 0.13)',
+            bgcolor: '#fff',
             overflowX: 'hidden',
+            transition: 'width 0.25s ease',
           },
         }}
       >
-        <Box sx={{ p: 3, display: 'flex', alignItems: 'center', height: 80 }}>
-          <Box sx={{ 
-            width: 32, 
-            height: 32, 
-            bgcolor: 'primary.main', 
-            borderRadius: 1, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            mr: 2,
-            boxShadow: '0 0 15px rgba(79, 70, 229, 0.5)'
-          }}>
-            <FolderKanban size={18} color="white" />
-          </Box>
-          <AnimatePresence>
-            {open && (
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-              >
-                <Typography variant="h6" sx={{ fontWeight: 900, letterSpacing: -0.5, color: 'white' }}>
-                  Team Task Manager
-                </Typography>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Box>
-
-        <List sx={{ px: 2, mt: 2 }}>
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <ListItem key={item.text} disablePadding sx={{ mb: 1 }}>
-                <ListItemButton
-                  onClick={() => navigate(item.path)}
-                  sx={{
-                    minHeight: 48,
-                    borderRadius: 2,
-                    px: 2.5,
-                    bgcolor: isActive ? 'rgba(79, 70, 229, 0.1)' : 'transparent',
-                    color: isActive ? 'white' : 'inherit',
-                    '&:hover': {
-                      bgcolor: 'rgba(255, 255, 255, 0.05)',
-                      color: 'white',
-                    },
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  <ListItemIcon sx={{ 
-                    minWidth: 0, 
-                    mr: open ? 2 : 'auto', 
-                    color: isActive ? 'primary.main' : 'inherit' 
-                  }}>
-                    {item.icon}
-                  </ListItemIcon>
-                  {open && <ListItemText primary={item.text} sx={{ 
-                    '& .MuiTypography-root': { fontWeight: isActive ? 600 : 500, fontSize: '0.925rem' } 
-                  }} />}
-                </ListItemButton>
-              </ListItem>
-            );
-          })}
-        </List>
-
-        <Box sx={{ mt: 'auto', p: 3 }}>
-          <IconButton 
-            onClick={() => setOpen(!open)}
-            sx={{ 
-              width: '100%', 
-              borderRadius: 2, 
-              bgcolor: 'rgba(255,255,255,0.05)',
-              color: 'slate.400'
-            }}
-          >
-            {open ? <ChevronLeft size={18} /> : <Search size={18} />}
-          </IconButton>
-        </Box>
+        {drawerContent}
       </Drawer>
 
-      {/* Main Content Area */}
-      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        <Box sx={{ 
-          height: 80, 
-          px: 4, 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          bgcolor: 'white',
-          borderBottom: '1px solid',
-          borderColor: 'slate.100'
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-             <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'slate.50', px: 2, py: 1, borderRadius: 2, width: 300 }}>
-                <Search size={18} color="#64748b" />
-                <Typography variant="body2" sx={{ ml: 1, color: 'slate.400' }}>Search...</Typography>
-             </Box>
+      <Box
+        component="main"
+        sx={{
+          position: 'relative',
+          zIndex: 1,
+          ml: { xs: 0, md: open ? `${drawerWidth + 22}px` : `${collapsedWidth + 22}px` },
+          minHeight: '100vh',
+          transition: 'margin-left 0.25s ease',
+        }}
+      >
+        <Box
+          sx={{
+            px: { xs: 2, sm: 3, lg: 4 },
+            pt: { xs: 2.5, md: 2.5 },
+            pb: 4,
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: 2,
+            color: '#fff',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+            {isMobile && (
+              <IconButton
+                onClick={() => setMobileOpen(true)}
+                sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,0.15)' }}
+              >
+                <MenuIcon size={22} />
+              </IconButton>
+            )}
+            <Box>
+              <Typography sx={{ opacity: 0.72, fontWeight: 700, mb: 0.5 }}>{meta.crumb}</Typography>
+              <Typography variant="h5" sx={{ fontWeight: 800, color: '#fff' }}>
+                {meta.title}
+              </Typography>
+            </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <Tooltip title="Notifications">
-              <IconButton size="small">
-                <Badge variant="dot" color="primary">
-                  <Bell size={20} color="#64748b" />
-                </Badge>
-              </IconButton>
-            </Tooltip>
-            
-            <Box sx={{ height: 24, width: 1, bgcolor: 'slate.200' }} />
-
-            <Box 
-              onClick={(e) => setAnchorEl(e.currentTarget)}
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 1.5, 
-                cursor: 'pointer',
-                p: 0.5, pr: 1, borderRadius: 2,
-                '&:hover': { bgcolor: 'slate.50' }
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, md: 2 } }}>
+            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+              <SearchInput variant="topbar" />
+            </Box>
+            <Button
+              onClick={handleLogout}
+              endIcon={<LogOut size={16} />}
+              sx={{
+                color: '#fff',
+                px: { xs: 1, md: 2 },
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.14)', boxShadow: 'none' },
               }}
             >
-              <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.875rem', fontWeight: 700 }}>
-                {user?.username?.[0]?.toUpperCase() || '?'}
-              </Avatar>
-              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                <Typography variant="body2" sx={{ fontWeight: 700, lineHeight: 1 }}>{user?.username}</Typography>
-                <Typography variant="caption" color="text.secondary">{user?.role}</Typography>
-              </Box>
-            </Box>
+              Log out
+            </Button>
+            <Avatar
+              onClick={(e) => setAnchorEl(e.currentTarget)}
+              sx={{
+                width: 38,
+                height: 38,
+                cursor: 'pointer',
+                bgcolor: '#fff',
+                color: '#fb5b3f',
+                fontWeight: 900,
+              }}
+            >
+              {user?.username?.[0]?.toUpperCase() || '?'}
+            </Avatar>
           </Box>
         </Box>
 
-        <Box sx={{ p: 4, flexGrow: 1 }}>
+        <Box sx={{ px: { xs: 2, sm: 3, lg: 4 }, pb: 5, mt: { xs: 0, md: 2 } }}>
           <Outlet />
         </Box>
       </Box>
@@ -210,16 +379,18 @@ export default function MainLayout() {
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
         onClose={() => setAnchorEl(null)}
-        sx={{ mt: 1 }}
         PaperProps={{
-          sx: { width: 200, borderRadius: 3, p: 1, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }
+          sx: { width: 210, borderRadius: '8px', p: 1, boxShadow: '0 16px 34px rgba(47, 67, 103, 0.16)' },
         }}
       >
-        <MenuItem onClick={() => setAnchorEl(null)} sx={{ borderRadius: 1.5 }}>My Profile</MenuItem>
-        <MenuItem onClick={() => setAnchorEl(null)} sx={{ borderRadius: 1.5 }}>Settings</MenuItem>
-        <Divider sx={{ my: 1 }} />
-        <MenuItem onClick={handleLogout} sx={{ borderRadius: 1.5, color: 'error.main' }}>
-          <LogOut size={16} style={{ marginRight: 12 }} /> Logout
+        <MenuItem disabled sx={{ borderRadius: '8px', opacity: '1 !important' }}>
+          <Box>
+            <Typography sx={{ fontWeight: 800, color: '#2f4367' }}>{user?.username}</Typography>
+            <Typography sx={{ fontSize: '0.76rem', color: '#70809d' }}>{user?.role}</Typography>
+          </Box>
+        </MenuItem>
+        <MenuItem onClick={handleLogout} sx={{ borderRadius: '8px', color: 'error.main', fontWeight: 800 }}>
+          <LogOut size={16} style={{ marginRight: 10 }} /> Logout
         </MenuItem>
       </Menu>
     </Box>

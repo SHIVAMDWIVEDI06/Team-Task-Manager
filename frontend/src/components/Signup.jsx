@@ -1,20 +1,23 @@
 import { useState } from 'react';
-import { 
-  Box, 
-  Button, 
-  TextField, 
-  Typography, 
-  Container, 
-  Paper,
-  Link,
+import {
+  Alert,
+  Box,
+  Button,
   CircularProgress,
-  InputAdornment,
+  Container,
   IconButton,
-  MenuItem
+  InputAdornment,
+  Link,
+  MenuItem,
+  Paper,
+  TextField,
+  Typography,
 } from '@mui/material';
-import { User, Mail, Lock, Eye, EyeOff, Shield } from 'lucide-react';
+import { Eye, EyeOff, FolderKanban, Lock, Mail, Shield, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import PremiumIcon from './PremiumIcon';
+import AuthProductVisual from './AuthProductVisual';
 
 export default function Signup({ onToggleMode }) {
   const { signup } = useAuth();
@@ -24,10 +27,10 @@ export default function Signup({ onToggleMode }) {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (event) => setFormData({ ...formData, [event.target.name]: event.target.value });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setLoading(true);
     setError('');
 
@@ -41,104 +44,103 @@ export default function Signup({ onToggleMode }) {
   };
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh', 
-      display: 'flex', 
-      alignItems: 'center', 
-      bgcolor: 'background.default',
-      backgroundImage: 'radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.05) 0, transparent 50%), radial-gradient(at 50% 0%, rgba(71, 85, 105, 0.05) 0, transparent 50%)'
-    }}>
-      <Container maxWidth="xs">
-        <Paper elevation={0} sx={{ p: 5, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
-          <Box sx={{ mb: 4, textAlign: 'center' }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>
-              Create Account
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Start managing your team's tasks effectively.
-            </Typography>
-          </Box>
-          
-          {error && (
-            <Box sx={{ p: 1.5, mb: 3, bgcolor: 'error.light', borderRadius: 1.5, opacity: 0.8 }}>
-              <Typography color="error.dark" variant="caption" sx={{ fontWeight: 600 }}>{error}</Typography>
-            </Box>
-          )}
+    <Box className="argon-gradient" sx={{ minHeight: '100vh', py: { xs: 3, md: 6 }, display: 'flex', alignItems: 'center' }}>
+      <Container maxWidth="lg">
+        <Paper
+          sx={{
+            overflow: 'hidden',
+            borderRadius: '8px',
+            border: '1px solid rgba(255,255,255,0.45)',
+            boxShadow: '0 24px 60px rgba(47, 67, 103, 0.22)',
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '0.95fr 1.05fr' },
+          }}
+        >
+          <AuthProductVisual
+            title="Build your task command center"
+            subtitle="Create a workspace identity with boards, delivery health, and team visibility from day one."
+          />
 
-          <Box component="form" onSubmit={handleSubmit}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              label="Username"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              InputProps={{
-                startAdornment: <InputAdornment position="start"><User size={18} /></InputAdornment>,
-              }}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              value={formData.email}
-              onChange={handleChange}
-              InputProps={{
-                startAdornment: <InputAdornment position="start"><Mail size={18} /></InputAdornment>,
-              }}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type={showPassword ? 'text' : 'password'}
-              value={formData.password}
-              onChange={handleChange}
-              InputProps={{
-                startAdornment: <InputAdornment position="start"><Lock size={18} /></InputAdornment>,
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <TextField
-              select
-              fullWidth
-              margin="normal"
-              label="Select Role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              InputProps={{
-                startAdornment: <InputAdornment position="start"><Shield size={18} /></InputAdornment>,
-              }}
-            >
-              <MenuItem value="Admin">Admin (Project Manager)</MenuItem>
-              <MenuItem value="Member">Member (Team Contributor)</MenuItem>
-            </TextField>
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              disabled={loading}
-              sx={{ py: 1.5, mt: 3, mb: 2, fontSize: '1rem' }}
-            >
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign Up'}
-            </Button>
-            <Box sx={{ textAlign: 'center', mt: 2 }}>
-              <Typography variant="body2" color="text.secondary">
+          <Box sx={{ p: { xs: 3, sm: 5 }, bgcolor: '#fff' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.4, mb: 4 }}>
+              <PremiumIcon tone="coral" size={44} radius="14px">
+                <FolderKanban size={23} />
+              </PremiumIcon>
+              <Typography variant="h6" sx={{ color: '#2f4367' }}>TeamTask Manager</Typography>
+            </Box>
+
+            <Typography variant="h3" sx={{ color: '#2f4367', mb: 1 }}>
+              Create account
+            </Typography>
+            <Typography sx={{ color: '#70809d', fontWeight: 700, mb: 3 }}>
+              Start coordinating projects with your team.
+            </Typography>
+
+            {error && <Alert severity="error" sx={{ mb: 2.5, borderRadius: '8px' }}>{error}</Alert>}
+
+            <Box component="form" onSubmit={handleSubmit}>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                label="Username"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                slotProps={{ input: { startAdornment: <InputAdornment position="start"><User size={18} /></InputAdornment> } }}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                label="Email Address"
+                name="email"
+                autoComplete="email"
+                value={formData.email}
+                onChange={handleChange}
+                slotProps={{ input: { startAdornment: <InputAdornment position="start"><Mail size={18} /></InputAdornment> } }}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="password"
+                label="Password"
+                type={showPassword ? 'text' : 'password'}
+                value={formData.password}
+                onChange={handleChange}
+                slotProps={{
+                  input: {
+                    startAdornment: <InputAdornment position="start"><Lock size={18} /></InputAdornment>,
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+              <TextField
+                select
+                fullWidth
+                margin="normal"
+                label="Select Role"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                slotProps={{ input: { startAdornment: <InputAdornment position="start"><Shield size={18} /></InputAdornment> } }}
+              >
+                <MenuItem value="Admin">Admin (Project Manager)</MenuItem>
+                <MenuItem value="Member">Member (Team Contributor)</MenuItem>
+              </TextField>
+              <Button type="submit" fullWidth variant="contained" disabled={loading} sx={{ py: 1.4, mt: 3, mb: 2 }}>
+                {loading ? <CircularProgress size={23} color="inherit" /> : 'Sign Up'}
+              </Button>
+              <Typography sx={{ textAlign: 'center', color: '#70809d', fontWeight: 700 }}>
                 Already have an account?{' '}
-                <Link href="#" onClick={(e) => { e.preventDefault(); onToggleMode(); }} sx={{ fontWeight: 600, color: 'primary.main', textDecoration: 'none' }}>
+                <Link href="#" onClick={(event) => { event.preventDefault(); onToggleMode(); }} sx={{ color: '#fb5b3f', fontWeight: 900, textDecoration: 'none' }}>
                   Log In
                 </Link>
               </Typography>

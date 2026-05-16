@@ -1,29 +1,41 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Typography, 
-  Box, 
-  Grid, 
-  Card, 
-  CardContent, 
-  Button, 
-  Skeleton,
-  IconButton,
-  Chip,
-  AvatarGroup,
+import React, { useEffect, useState } from 'react';
+import {
   Avatar,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
   Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions,
-  TextField
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Skeleton,
+  TextField,
+  Typography,
 } from '@mui/material';
-import { Plus, Trash2, FolderOpen, MoreHorizontal, Users, Calendar } from 'lucide-react';
+import { ArrowRight, CalendarDays, FolderOpen, Plus, Trash2, Users } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../config';
 import toast from 'react-hot-toast';
+import PremiumIcon from '../components/PremiumIcon';
+
+const cardSx = {
+  height: '100%',
+  borderRadius: '8px',
+  border: '1px solid #e8edf5',
+  boxShadow: '0 16px 34px rgba(47, 67, 103, 0.08)',
+  transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    borderColor: '#ffb08b',
+    boxShadow: '0 20px 40px rgba(47, 67, 103, 0.12)',
+  },
+};
 
 export default function Projects() {
   const { isAdmin } = useAuth();
@@ -37,7 +49,7 @@ export default function Projects() {
     try {
       const token = localStorage.getItem('token');
       const res = await axios.get(`${API_BASE_URL}/projects`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setProjects(res.data);
     } catch (err) {
@@ -55,7 +67,7 @@ export default function Projects() {
     try {
       const token = localStorage.getItem('token');
       await axios.post(`${API_BASE_URL}/projects`, newProject, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setCreateModalOpen(false);
       setNewProject({ name: '', description: '' });
@@ -71,7 +83,7 @@ export default function Projects() {
     try {
       const token = localStorage.getItem('token');
       await axios.delete(`${API_BASE_URL}/projects/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       fetchProjects();
       toast.success('Project deleted successfully');
@@ -82,147 +94,164 @@ export default function Projects() {
   };
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 6 }}>
+    <Box sx={{ pb: 4 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: { xs: 'stretch', sm: 'center' },
+          flexDirection: { xs: 'column', sm: 'row' },
+          gap: 2,
+          mb: 3.5,
+        }}
+      >
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 900, color: 'slate.900', letterSpacing: -1 }}>
-            My Projects
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Manage your teams and keep track of all ongoing work.
+          <Typography sx={{ color: '#fff', opacity: 0.86, fontWeight: 700 }}>
+            Organize teams, task boards, and delivery milestones.
           </Typography>
         </Box>
         {isAdmin && (
-          <Button 
-            variant="contained" 
+          <Button
+            variant="contained"
             startIcon={<Plus size={18} />}
             onClick={() => setCreateModalOpen(true)}
-            sx={{ borderRadius: 3, px: 3, py: 1.2, fontWeight: 700 }}
+            sx={{ bgcolor: '#fff', color: '#fb5b3f', '&:hover': { bgcolor: '#fff2e3' } }}
           >
             Create Project
           </Button>
         )}
       </Box>
 
-      <Grid container spacing={4}>
-        {loading ? (
-          [...Array(3)].map((_, i) => (
-            <Grid item xs={12} md={4} key={i}>
-              <Skeleton variant="rectangular" height={220} sx={{ borderRadius: 5 }} />
-            </Grid>
-          ))
-        ) : (
-          projects.map((project, index) => (
-            <Grid item xs={12} md={4} key={project.id}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card sx={{ 
-                  height: '100%', 
-                  borderRadius: 5, 
-                  border: '1px solid', 
-                  borderColor: 'slate.100',
-                  boxShadow: 'none',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  '&:hover': {
-                    borderColor: 'primary.main',
-                    transform: 'translateY(-6px)',
-                    boxShadow: '0 20px 25px -5px rgba(0,0,0,0.05)'
-                  }
-                }}>
-                  <CardContent sx={{ p: 4 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-                      <Box sx={{ 
-                        p: 1.5, 
-                        bgcolor: 'rgba(79, 70, 229, 0.08)', 
-                        color: 'primary.main', 
-                        borderRadius: 3, 
-                        display: 'flex' 
-                      }}>
-                        <FolderOpen size={24} />
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))', xl: 'repeat(3, minmax(0, 1fr))' }, gap: 3 }}>
+        {loading
+          ? [...Array(6)].map((_, index) => (
+              <Box key={index} sx={{ minWidth: 0 }}>
+                <Skeleton variant="rectangular" height={245} sx={{ borderRadius: '8px' }} />
+              </Box>
+            ))
+          : projects.map((project, index) => (
+              <Box key={project.id} sx={{ minWidth: 0 }}>
+                <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}>
+                  <Card sx={cardSx}>
+                    <CardContent sx={{ p: 3 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+                        <PremiumIcon tone="coral" size={58} radius="16px">
+                          <FolderOpen size={27} />
+                        </PremiumIcon>
+                        <Chip label="Workspace" size="small" sx={{ bgcolor: '#f6f8fb', color: '#70809d', fontWeight: 800 }} />
                       </Box>
-                      <IconButton size="small"><MoreHorizontal size={20} color="#94a3b8" /></IconButton>
-                    </Box>
 
-                    <Typography variant="h6" sx={{ fontWeight: 800, mb: 1, color: 'slate.900' }}>
-                      {project.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ 
-                      mb: 3, 
-                      display: '-webkit-box', 
-                      WebkitLineClamp: 2, 
-                      WebkitBoxOrient: 'vertical', 
-                      overflow: 'hidden',
-                      minHeight: 40
-                    }}>
-                      {project.description}
-                    </Typography>
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'slate.400' }}>
-                          <Users size={14} />
-                          <Typography variant="caption" sx={{ fontWeight: 700 }}>12 Members</Typography>
-                       </Box>
-                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'slate.400' }}>
-                          <Calendar size={14} />
-                          <Typography variant="caption" sx={{ fontWeight: 700 }}>24 Tasks</Typography>
-                       </Box>
-                    </Box>
+                      <Typography variant="h6" sx={{ color: '#2f4367', mb: 1 }}>
+                        {project.name}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          color: '#70809d',
+                          minHeight: 48,
+                          lineHeight: 1.7,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {project.description || 'No description has been added for this project yet.'}
+                      </Typography>
 
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <AvatarGroup max={3} sx={{ '& .MuiAvatar-root': { width: 28, height: 28, fontSize: '0.75rem' } }}>
-                        <Avatar sx={{ bgcolor: 'primary.main' }}>S</Avatar>
-                        <Avatar sx={{ bgcolor: 'success.main' }}>J</Avatar>
-                        <Avatar sx={{ bgcolor: 'warning.main' }}>A</Avatar>
-                      </AvatarGroup>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        {isAdmin && (
-                          <IconButton 
-                            size="small" 
-                            color="error" 
-                            onClick={(e) => { e.stopPropagation(); handleDeleteProject(project.id); }}
-                            sx={{ border: '1px solid', borderColor: 'error.light' }}
+                      <Box sx={{ display: 'flex', gap: 1.5, mt: 3, mb: 3, flexWrap: 'wrap' }}>
+                        <Chip
+                          icon={<Users size={15} />}
+                          label="Team board"
+                          sx={{ bgcolor: '#effaf5', color: '#159664', fontWeight: 800 }}
+                        />
+                        <Chip
+                          icon={<CalendarDays size={15} />}
+                          label="Task timeline"
+                          sx={{ bgcolor: '#f6f8fb', color: '#70809d', fontWeight: 800 }}
+                        />
+                      </Box>
+
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          {[project.name?.[0] || 'P', 'T', 'M'].map((letter, avatarIndex) => (
+                            <Avatar
+                              key={`${project.id}-${letter}-${avatarIndex}`}
+                              sx={{
+                                width: 30,
+                                height: 30,
+                                ml: avatarIndex ? -0.8 : 0,
+                                bgcolor: avatarIndex === 0 ? '#fb5b3f' : avatarIndex === 1 ? '#22c98a' : '#ff9b3d',
+                                border: '2px solid #fff',
+                                fontSize: '0.76rem',
+                                fontWeight: 900,
+                              }}
+                            >
+                              {letter}
+                            </Avatar>
+                          ))}
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          {isAdmin && (
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteProject(project.id);
+                              }}
+                              sx={{
+                                border: '1px solid #ffe4ea',
+                                color: '#f43f5e',
+                                borderRadius: '8px',
+                                '&:hover': { bgcolor: '#fff7f8' },
+                              }}
+                            >
+                              <Trash2 size={16} />
+                            </IconButton>
+                          )}
+                          <Button
+                            variant="outlined"
+                            endIcon={<ArrowRight size={16} />}
+                            onClick={() => navigate(`/projects/${project.id}`)}
+                            sx={{ borderColor: '#e8edf5', color: '#2f4367', '&:hover': { borderColor: '#fb5b3f' } }}
                           >
-                            <Trash2 size={16} />
-                          </IconButton>
-                        )}
-                        <Button 
-                          variant="outlined"
-                          size="small" 
-                          onClick={() => navigate(`/projects/${project.id}`)}
-                          sx={{ 
-                            borderRadius: 2, 
-                            fontWeight: 700, 
-                            px: 2,
-                            borderColor: 'slate.200',
-                            color: 'slate.600',
-                            '&:hover': { bgcolor: 'primary.main', color: 'white', borderColor: 'primary.main' }
-                          }}
-                        >
-                          View Board
-                        </Button>
+                            View Board
+                          </Button>
+                        </Box>
                       </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </Grid>
-          ))
-        )}
-      </Grid>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </Box>
+            ))}
+      </Box>
 
-      {/* Create Project Modal */}
-      <Dialog open={createModalOpen} onClose={() => setCreateModalOpen(false)} PaperProps={{ sx: { borderRadius: 5, p: 2 } }}>
-        <DialogTitle sx={{ fontWeight: 900 }}>Create New Project</DialogTitle>
+      {!loading && projects.length === 0 && (
+        <Box className="argon-card" sx={{ p: 4, textAlign: 'center', color: '#70809d' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+            <PremiumIcon tone="slate" size={66} radius="18px">
+              <FolderOpen size={30} />
+            </PremiumIcon>
+          </Box>
+          <Typography variant="h6" sx={{ color: '#2f4367', mb: 1 }}>
+            No projects yet
+          </Typography>
+          <Typography sx={{ mb: 2 }}>Create your first workspace to start tracking team tasks.</Typography>
+          {isAdmin && (
+            <Button variant="contained" startIcon={<Plus size={18} />} onClick={() => setCreateModalOpen(true)}>
+              Create Project
+            </Button>
+          )}
+        </Box>
+      )}
+
+      <Dialog open={createModalOpen} onClose={() => setCreateModalOpen(false)} PaperProps={{ sx: { borderRadius: '8px', p: 1 } }}>
+        <DialogTitle sx={{ fontWeight: 900, color: '#2f4367' }}>Create New Project</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
             label="Project Name"
             fullWidth
-            variant="outlined"
             value={newProject.name}
             onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
             sx={{ mb: 3, mt: 1 }}
@@ -232,17 +261,19 @@ export default function Projects() {
             fullWidth
             multiline
             rows={3}
-            variant="outlined"
             value={newProject.description}
             onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
           />
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setCreateModalOpen(false)} sx={{ color: 'slate-500' }}>Cancel</Button>
-          <Button variant="contained" onClick={handleCreateProject} sx={{ borderRadius: 2, px: 4 }}>Create</Button>
+          <Button onClick={() => setCreateModalOpen(false)} sx={{ color: '#70809d' }}>
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={handleCreateProject}>
+            Create
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
   );
 }
-

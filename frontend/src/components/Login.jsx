@@ -1,19 +1,22 @@
 import { useState } from 'react';
-import { 
-  Box, 
-  Button, 
-  TextField, 
-  Typography, 
-  Container, 
-  Paper,
-  Link,
+import {
+  Alert,
+  Box,
+  Button,
   CircularProgress,
+  Container,
+  IconButton,
   InputAdornment,
-  IconButton
+  Link,
+  Paper,
+  TextField,
+  Typography,
 } from '@mui/material';
-import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, FolderKanban, Lock, Mail } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import PremiumIcon from './PremiumIcon';
+import AuthProductVisual from './AuthProductVisual';
 
 export default function Login({ onToggleMode }) {
   const { login } = useAuth();
@@ -23,13 +26,13 @@ export default function Login({ onToggleMode }) {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (event) => setFormData({ ...formData, [event.target.name]: event.target.value });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setLoading(true);
     setError('');
-    
+
     const result = await login(formData.email, formData.password);
     if (result.success) {
       navigate('/');
@@ -40,84 +43,87 @@ export default function Login({ onToggleMode }) {
   };
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh', 
-      display: 'flex', 
-      alignItems: 'center', 
-      bgcolor: 'background.default',
-      backgroundImage: 'radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.05) 0, transparent 50%), radial-gradient(at 50% 0%, rgba(71, 85, 105, 0.05) 0, transparent 50%)'
-    }}>
-      <Container maxWidth="xs">
-        <Paper elevation={0} sx={{ p: 5, borderRadius: 4, border: '1px solid', borderColor: 'divider' }}>
-          <Box sx={{ mb: 4, textAlign: 'center' }}>
-            <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mb: 1 }}>
-              Welcome Back
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Enter your credentials to access your dashboard.
-            </Typography>
-          </Box>
-          
-          {error && (
-            <Box sx={{ p: 1.5, mb: 3, bgcolor: 'error.light', borderRadius: 1.5, opacity: 0.8 }}>
-              <Typography color="error.dark" variant="caption" sx={{ fontWeight: 600 }}>{error}</Typography>
+    <Box className="argon-gradient" sx={{ minHeight: '100vh', py: { xs: 3, md: 6 }, display: 'flex', alignItems: 'center' }}>
+      <Container maxWidth="lg">
+        <Paper
+          sx={{
+            overflow: 'hidden',
+            borderRadius: '8px',
+            border: '1px solid rgba(255,255,255,0.45)',
+            boxShadow: '0 24px 60px rgba(47, 67, 103, 0.22)',
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '1.05fr 0.95fr' },
+          }}
+        >
+          <Box sx={{ p: { xs: 3, sm: 5 }, bgcolor: '#fff' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.4, mb: 5 }}>
+              <PremiumIcon tone="coral" size={44} radius="14px">
+                <FolderKanban size={23} />
+              </PremiumIcon>
+              <Typography variant="h6" sx={{ color: '#2f4367' }}>TeamTask Manager</Typography>
             </Box>
-          )}
 
-          <Box component="form" onSubmit={handleSubmit}>
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              autoFocus
-              value={formData.email}
-              onChange={handleChange}
-              InputProps={{
-                startAdornment: <InputAdornment position="start"><Mail size={18} /></InputAdornment>,
-              }}
-            />
-            <TextField
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label="Password"
-              type={showPassword ? 'text' : 'password'}
-              autoComplete="current-password"
-              value={formData.password}
-              onChange={handleChange}
-              InputProps={{
-                startAdornment: <InputAdornment position="start"><Lock size={18} /></InputAdornment>,
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              disabled={loading}
-              sx={{ py: 1.5, mt: 3, mb: 2, fontSize: '1rem' }}
-            >
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
-            </Button>
-            <Box sx={{ textAlign: 'center', mt: 2 }}>
-              <Typography variant="body2" color="text.secondary">
+            <Typography variant="h3" sx={{ color: '#2f4367', mb: 1 }}>
+              Welcome back
+            </Typography>
+            <Typography sx={{ color: '#70809d', fontWeight: 700, mb: 3 }}>
+              Sign in to continue managing your project boards.
+            </Typography>
+
+            {error && <Alert severity="error" sx={{ mb: 2.5, borderRadius: '8px' }}>{error}</Alert>}
+
+            <Box component="form" onSubmit={handleSubmit}>
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                label="Email Address"
+                name="email"
+                autoComplete="email"
+                autoFocus
+                value={formData.email}
+                onChange={handleChange}
+                slotProps={{ input: { startAdornment: <InputAdornment position="start"><Mail size={18} /></InputAdornment> } }}
+              />
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="password"
+                label="Password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                value={formData.password}
+                onChange={handleChange}
+                slotProps={{
+                  input: {
+                    startAdornment: <InputAdornment position="start"><Lock size={18} /></InputAdornment>,
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+              <Button type="submit" fullWidth variant="contained" disabled={loading} sx={{ py: 1.4, mt: 3, mb: 2 }}>
+                {loading ? <CircularProgress size={23} color="inherit" /> : 'Sign In'}
+              </Button>
+              <Typography sx={{ textAlign: 'center', color: '#70809d', fontWeight: 700 }}>
                 Don't have an account?{' '}
-                <Link href="#" onClick={(e) => { e.preventDefault(); onToggleMode(); }} sx={{ fontWeight: 600, color: 'primary.main', textDecoration: 'none' }}>
+                <Link href="#" onClick={(event) => { event.preventDefault(); onToggleMode(); }} sx={{ color: '#fb5b3f', fontWeight: 900, textDecoration: 'none' }}>
                   Sign Up
                 </Link>
               </Typography>
             </Box>
           </Box>
+
+          <AuthProductVisual
+            title="Bring every task into focus"
+            subtitle="A polished command center for tracking teams, risk, progress, and delivery momentum."
+          />
         </Paper>
       </Container>
     </Box>
