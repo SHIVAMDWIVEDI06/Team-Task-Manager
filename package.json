@@ -3,10 +3,15 @@
   "version": "1.0.0",
   "description": "Team Task Manager - Full Stack Application",
   "scripts": {
-    "build": "npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix backend",
-    "start": "node backend/src/index.js"
+    "build": "npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix backend --omit=dev",
+    "start": "node backend/src/index.js",
+    "postinstall": "npm run build"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
 }

@@ -1,0 +1,8 @@
+node_modules/
+.git/
+.vscode/
+*.log
+.env.local
+.env.development
+frontend/node_modules/
+backend/node_modules/
