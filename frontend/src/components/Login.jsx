@@ -28,6 +28,10 @@ export default function Login({ onToggleMode }) {
 
   const handleChange = (event) => setFormData({ ...formData, [event.target.name]: event.target.value });
 
+  const fillTestCredentials = () => {
+    setFormData({ email: 'admin@test.com', password: 'admin123' });
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -69,6 +73,31 @@ export default function Login({ onToggleMode }) {
             <Typography sx={{ color: '#70809d', fontWeight: 700, mb: 3 }}>
               Sign in to continue managing your project boards.
             </Typography>
+
+            <Box sx={{ mb: 2, p: 2, bgcolor: '#f7fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <Typography variant="body2" sx={{ color: '#4a5568', fontWeight: 600, mb: 1 }}>
+                🧪 Test Credentials
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#718096', display: 'block', mb: 1 }}>
+                Email: admin@test.com | Password: admin123
+              </Typography>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={fillTestCredentials}
+                sx={{
+                  textTransform: 'none',
+                  fontSize: '0.75rem',
+                  py: 0.5,
+                  px: 1.5,
+                  borderColor: '#cbd5e0',
+                  color: '#4a5568',
+                  '&:hover': { borderColor: '#a0aec0', bgcolor: '#edf2f7' }
+                }}
+              >
+                Fill Test Credentials
+              </Button>
+            </Box>
 
             {error && <Alert severity="error" sx={{ mb: 2.5, borderRadius: '8px' }}>{error}</Alert>}
 
