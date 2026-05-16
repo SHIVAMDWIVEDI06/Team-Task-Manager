@@ -17,7 +17,9 @@ app.use(cors());
 app.use(express.json());
 
 // Serve frontend static files from React production build
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
+const frontendPath = path.join(__dirname, '../../frontend/dist');
+console.log('Serving static files from:', frontendPath);
+app.use(express.static(frontendPath));
 
 // Mount routes
 app.use('/api/auth', authRoutes);
@@ -38,7 +40,9 @@ app.get('/api/health', async (req, res) => {
 
 // Serve React app for any unknown routes (SPA support)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  const indexPath = path.join(__dirname, '../../frontend/dist/index.html');
+  console.log('Serving index.html from:', indexPath);
+  res.sendFile(indexPath);
 });
 
 app.listen(port, () => {
