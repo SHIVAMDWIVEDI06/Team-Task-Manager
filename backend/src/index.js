@@ -39,7 +39,9 @@ app.get('/api/health', async (req, res) => {
 });
 
 // Serve React app for any unknown routes (SPA support)
-app.get('/:splat*', (req, res) => {
+// This uses a native regular expression match (.*) instead of a string path.
+// It bypasses the path-to-regexp parser completely and catches everything.
+app.get(/^(?!\/api).*$/, (req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'frontend', 'dist', 'index.html'));
 });
 
