@@ -39,7 +39,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // Serve React app for any unknown routes (SPA support)
-app.get('/*', (req, res) => {
+app.get('/:splat*', (req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'frontend', 'dist', 'index.html'));
 });
 
