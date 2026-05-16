@@ -16,12 +16,7 @@ const searchRoutes = require('./routes/searchRoutes');
 app.use(cors());
 app.use(express.json());
 
-// Serve frontend static files from React production build
-const frontendPath = path.join(__dirname, '../../frontend/dist');
-console.log('Serving static files from:', frontendPath);
-app.use(express.static(frontendPath));
-
-// Mount routes
+// Mount API routes FIRST (before static files and catch-all)
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
@@ -38,11 +33,16 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// Serve React app for any unknown routes (SPA support)
-// This uses a native regular expression match (.*) instead of a string path.
-// It bypasses the path-to-regexp parser completely and catches everything.
-app.get(/^(?!\/api).*$/, (req, res) => {
-    res.sendFile(path.join(__dirname, '..', '..', 'frontend', 'dist', 'index.html'));
+// Serve frontend static files from React production build (AFTER API routes)
+const frontendPath = path.join(__dirname, '../../frontend/dist');
+console.log('Serving static files from:', frontendPath);
+app.use(express.static(frontendPath));
+
+// Serve React app for any unknown routes (SPA support) - MUST BE LAST
+app.get('*', (req, res) => {
+  const indexPath = path.join(__dirname, '../../frontend/dist/index.html');
+  console.log('Serving index.html from:', indexPath);
+  res.sendFile(indexPath);
 });
 
 app.listen(port, () => {
