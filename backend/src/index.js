@@ -89,6 +89,69 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+// Database initialization endpoint (for Railway deployment)
+app.post('/api/init-db', async (req, res) => {
+  try {
+    const bcrypt = require('bcryptjs');
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash('password123', salt);
+
+    // Delete dash users
+    await pool.query("DELETE FROM users WHERE username LIKE 'dash-%'");
+
+    const users = [
+      { username: 'admin', email: 'admin@test.com', role: 'Admin' },
+      { username: 'pawan', email: 'pawan@test.com', role: 'Admin' },
+      { username: 'madhwan', email: 'madhwan@test.com', role: 'Admin' },
+      { username: 'shreya', email: 'shreya@test.com', role: 'Member' },
+      { username: 'kirti', email: 'kirti@test.com', role: 'Member' },
+      { username: 'kritika', email: 'kritika@test.com', role: 'Member' },
+      { username: 'saksham', email: 'saksham@test.com', role: 'Member' },
+      { username: 'sejal', email: 'sejal@test.com', role: 'Member' },
+      { username: 'gursimar', email: 'gursimar@test.com', role: 'Member' },
+      { username: 'yash', email: 'yash@test.com', role: 'Member' }
+    ];
+
+    let created = 0;
+    let updated = 0;
+
+    for (const user of users) {
+      const existing = await pool.query(
+        'SELECT id FROM users WHERE email = $1 OR username = $2',
+        [user.email, user.username]
+      );
+
+      if (existing.rows.length > 0) {
+        await pool.query(
+          'UPDATE users SET username = $1, email = $2, password = $3, role = $4 WHERE id = $5',
+          [user.username, user.email, hashedPassword, user.role, existing.rows[0].id]
+        );
+        updated++;
+      } else {
+        await pool.query(
+          'INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4)',
+          [user.username, user.email, hashedPassword, user.role]
+        );
+        created++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Database initialized successfully',
+      created,
+      updated,
+      credentials: {
+        admin: 'admin@test.com / password123',
+        users: 'All users have password: password123'
+      }
+    });
+  } catch (err) {
+    console.error('Init DB error:', err);
+    res.status(500).json({ error: 'Failed to initialize database', details: err.message });
+  }
+});
+
 // Serve frontend static files from React production build (AFTER API routes)
 const frontendPath = path.join(__dirname, '../../frontend/dist');
 console.log('Serving static files from:', frontendPath);
