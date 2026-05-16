@@ -7,6 +7,7 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "setup:db": "node src/setupDb.js",
+    "seed:users": "node src/seedUsers.js",
     "test": "jest",
     "test:watch": "jest --watch"
   },

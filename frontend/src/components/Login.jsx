@@ -29,7 +29,7 @@ export default function Login({ onToggleMode }) {
   const handleChange = (event) => setFormData({ ...formData, [event.target.name]: event.target.value });
 
   const fillTestCredentials = () => {
-    setFormData({ email: 'admin@test.com', password: 'admin123' });
+    setFormData({ email: 'admin@test.com', password: 'password123' });
   };
 
   const handleSubmit = async (event) => {
@@ -79,7 +79,7 @@ export default function Login({ onToggleMode }) {
                 🧪 Test Credentials
               </Typography>
               <Typography variant="caption" sx={{ color: '#718096', display: 'block', mb: 1 }}>
-                Email: admin@test.com | Password: admin123
+                Email: admin@test.com | Password: password123
               </Typography>
               <Button
                 size="small"
