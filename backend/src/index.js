@@ -39,7 +39,8 @@ console.log('Serving static files from:', frontendPath);
 app.use(express.static(frontendPath));
 
 // Serve React app for any unknown routes (SPA support) - MUST BE LAST
-app.get('*', (req, res) => {
+// Note: Express 5 requires a different syntax for catch-all routes
+app.use((req, res) => {
   const indexPath = path.join(__dirname, '../../frontend/dist/index.html');
   console.log('Serving index.html from:', indexPath);
   res.sendFile(indexPath);
