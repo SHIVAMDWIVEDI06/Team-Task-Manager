@@ -3,12 +3,8 @@
   "version": "1.0.0",
   "description": "Team Task Manager - Full Stack Application",
   "scripts": {
-    "install:frontend": "cd frontend && npm install",
-    "install:backend": "cd backend && npm install",
-    "build:frontend": "cd frontend && npm run build",
-    "start": "cd backend && npm start",
-    "railway:build": "npm run install:frontend && npm run install:backend && npm run build:frontend",
-    "railway:start": "npm start"
+    "build": "npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix backend",
+    "start": "node backend/src/index.js"
   },
   "keywords": [],
   "author": "",
