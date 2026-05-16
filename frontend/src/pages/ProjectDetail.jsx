@@ -304,6 +304,21 @@ export default function ProjectDetail() {
     }
   };
 
+  const handleRemoveMember = async (userId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(
+        `${API_BASE_URL}/projects/${projectId}/members/${userId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      fetchData();
+      toast.success('Member removed successfully');
+    } catch (err) {
+      console.error('Remove member failed', err);
+      toast.error('Failed to remove member');
+    }
+  };
+
   if (loading) {
     return (
       <Box>
@@ -493,6 +508,7 @@ export default function ProjectDetail() {
                       </Avatar>
                     }
                     label={member.username}
+                    onDelete={isAdmin ? () => handleRemoveMember(member.id) : undefined}
                     sx={{ bgcolor: '#f6f8fb', color: '#2f4367', fontWeight: 700 }}
                   />
                 ))}

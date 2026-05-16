@@ -21,10 +21,18 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../config';
 import PremiumIcon from '../components/PremiumIcon';
+import UserStatsModal from '../components/UserStatsModal';
 
 export default function Team() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statsModalOpen, setStatsModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const handleViewStats = (user) => {
+    setSelectedUser(user);
+    setStatsModalOpen(true);
+  };
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -200,7 +208,12 @@ export default function Team() {
                     </Box>
                   </TableCell>
                   <TableCell align="right">
-                    <Button size="small" variant="outlined" sx={{ borderColor: '#e8edf5', color: '#2f4367' }}>
+                    <Button 
+                      size="small" 
+                      variant="outlined" 
+                      sx={{ borderColor: '#e8edf5', color: '#2f4367' }}
+                      onClick={() => handleViewStats(user)}
+                    >
                       View Stats
                     </Button>
                   </TableCell>
@@ -210,6 +223,13 @@ export default function Team() {
           </Table>
         </TableContainer>
       </Paper>
+
+      <UserStatsModal
+        open={statsModalOpen}
+        onClose={() => setStatsModalOpen(false)}
+        userId={selectedUser?.id}
+        username={selectedUser?.username}
+      />
     </Box>
   );
 }

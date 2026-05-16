@@ -12,6 +12,7 @@ const projectRoutes = require('./routes/projectRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const searchRoutes = require('./routes/searchRoutes');
+const statisticsRoutes = require('./routes/statisticsRoutes');
 
 // Initialize database tables on startup
 async function initializeDatabase() {
@@ -76,6 +77,7 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/statistics', statisticsRoutes);
 
 app.get('/api/health', async (req, res) => {
   try {
