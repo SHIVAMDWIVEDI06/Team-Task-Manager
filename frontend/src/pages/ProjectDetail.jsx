@@ -25,6 +25,7 @@ import { API_BASE_URL } from '../config';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import PremiumIcon from '../components/PremiumIcon';
+import MultiSelectMembers from '../components/MultiSelectMembers';
 
 const priorityColors = {
   High: { color: '#f43f5e', bg: '#fff7f8', border: '#ffe4ea' },
@@ -147,9 +148,9 @@ export default function ProjectDetail() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [memberModalOpen, setMemberModalOpen] = useState(false);
-  const [newMemberId, setNewMemberId] = useState('');
+  const [selectedMemberIds, setSelectedMemberIds] = useState([]);
   const [editData, setEditData] = useState({ status: '', due_date: '' });
-  const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'Medium', assigned_user_id: '', due_date: '' });
+  const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'Medium', assigned_user_ids: [], due_date: '' });
   const [allUsers, setAllUsers] = useState([]);
 
   const fetchData = async () => {
@@ -234,15 +235,39 @@ export default function ProjectDetail() {
   };
 
   const handleCreateTask = async () => {
+    if (!newTask.title) {
+      toast.error('Please enter a task title');
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${API_BASE_URL}/tasks`, { ...newTask, project_id: projectId }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      
+      // If multiple users selected, create a task for each
+      if (newTask.assigned_user_ids.length > 1) {
+        await Promise.all(
+          newTask.assigned_user_ids.map(userId =>
+            axios.post(
+              `${API_BASE_URL}/tasks`,
+              { ...newTask, assigned_user_id: userId, project_id: projectId },
+              { headers: { Authorization: `Bearer ${token}` } }
+            )
+          )
+        );
+        toast.success(`Created ${newTask.assigned_user_ids.length} tasks`);
+      } else {
+        // Single user or no assignment
+        await axios.post(
+          `${API_BASE_URL}/tasks`,
+          { ...newTask, assigned_user_id: newTask.assigned_user_ids[0] || null, project_id: projectId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        toast.success('Task created successfully');
+      }
+
       fetchData();
       setCreateModalOpen(false);
-      setNewTask({ title: '', description: '', priority: 'Medium', assigned_user_id: '', due_date: '' });
-      toast.success('Task created successfully');
+      setNewTask({ title: '', description: '', priority: 'Medium', assigned_user_ids: [], due_date: '' });
     } catch (err) {
       console.error('Create task failed', err);
       toast.error('Failed to create task');
@@ -250,16 +275,32 @@ export default function ProjectDetail() {
   };
 
   const handleAddMember = async () => {
+    if (selectedMemberIds.length === 0) {
+      toast.error('Please select at least one member');
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`${API_BASE_URL}/projects/${projectId}/members`, { userId: newMemberId }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      
+      // Add multiple members in parallel
+      await Promise.all(
+        selectedMemberIds.map(userId =>
+          axios.post(
+            `${API_BASE_URL}/projects/${projectId}/members`,
+            { userId },
+            { headers: { Authorization: `Bearer ${token}` } }
+          )
+        )
+      );
+
       setMemberModalOpen(false);
-      setNewMemberId('');
+      setSelectedMemberIds([]);
       fetchData();
+      toast.success(`Successfully added ${selectedMemberIds.length} member(s)`);
     } catch (err) {
       console.error('Add member failed', err);
+      toast.error('Failed to add some members');
     }
   };
 
@@ -368,37 +409,106 @@ export default function ProjectDetail() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={createModalOpen} onClose={() => setCreateModalOpen(false)} PaperProps={{ sx: { borderRadius: '8px', p: 1 } }}>
+      <Dialog open={createModalOpen} onClose={() => setCreateModalOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '8px', p: 1 } }}>
         <DialogTitle sx={{ fontWeight: 900, color: '#2f4367' }}>Create New Task</DialogTitle>
         <DialogContent>
-          <TextField autoFocus margin="dense" label="Task Title" fullWidth value={newTask.title} onChange={(e) => setNewTask({ ...newTask, title: e.target.value })} sx={{ mb: 3, mt: 1 }} />
-          <TextField select fullWidth label="Assign To" value={newTask.assigned_user_id} onChange={(e) => setNewTask({ ...newTask, assigned_user_id: e.target.value })} sx={{ mb: 3 }}>
-            {members.map((member) => <MenuItem key={member.id} value={member.id}>{member.username}</MenuItem>)}
-          </TextField>
-          <TextField select fullWidth label="Priority" value={newTask.priority} onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })} sx={{ mb: 3 }}>
+          <TextField 
+            autoFocus 
+            margin="dense" 
+            label="Task Title" 
+            fullWidth 
+            value={newTask.title} 
+            onChange={(e) => setNewTask({ ...newTask, title: e.target.value })} 
+            sx={{ mb: 3, mt: 1 }} 
+          />
+          
+          <MultiSelectMembers
+            options={members}
+            value={newTask.assigned_user_ids}
+            onChange={(ids) => setNewTask({ ...newTask, assigned_user_ids: ids })}
+            label="Assign To (Multiple)"
+            placeholder="Select one or more team members..."
+          />
+
+          <Typography variant="caption" sx={{ display: 'block', color: '#70809d', mt: 1, mb: 3 }}>
+            💡 Tip: Select multiple members to create a copy of this task for each person
+          </Typography>
+
+          <TextField 
+            select 
+            fullWidth 
+            label="Priority" 
+            value={newTask.priority} 
+            onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })} 
+            sx={{ mb: 3 }}
+          >
             <MenuItem value="High">High</MenuItem>
             <MenuItem value="Medium">Medium</MenuItem>
             <MenuItem value="Low">Low</MenuItem>
           </TextField>
-          <TextField fullWidth type="date" label="Due Date" slotProps={{ inputLabel: { shrink: true } }} value={newTask.due_date} onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })} />
+          <TextField 
+            fullWidth 
+            type="date" 
+            label="Due Date" 
+            slotProps={{ inputLabel: { shrink: true } }} 
+            value={newTask.due_date} 
+            onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })} 
+          />
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
           <Button onClick={() => setCreateModalOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleCreateTask}>Create Task</Button>
+          <Button variant="contained" onClick={handleCreateTask}>
+            Create Task{newTask.assigned_user_ids.length > 1 ? `s (${newTask.assigned_user_ids.length})` : ''}
+          </Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={memberModalOpen} onClose={() => setMemberModalOpen(false)} PaperProps={{ sx: { borderRadius: '8px', p: 1 } }}>
+      <Dialog open={memberModalOpen} onClose={() => setMemberModalOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '8px', p: 1 } }}>
         <DialogTitle sx={{ fontWeight: 900, color: '#2f4367' }}>Manage Project Team</DialogTitle>
         <DialogContent>
-          <Typography sx={{ color: '#70809d', mb: 3 }}>Add members to this project so they can receive tasks.</Typography>
-          <TextField select fullWidth label="Select User" value={newMemberId} onChange={(e) => setNewMemberId(e.target.value)}>
-            {allUsers.map((user) => <MenuItem key={user.id} value={user.id}>{user.username} ({user.email})</MenuItem>)}
-          </TextField>
+          <Typography sx={{ color: '#70809d', mb: 3 }}>
+            Select multiple members to add to this project. They will be able to receive task assignments.
+          </Typography>
+          
+          <MultiSelectMembers
+            options={allUsers.filter(user => !members.some(member => member.id === user.id))}
+            value={selectedMemberIds}
+            onChange={setSelectedMemberIds}
+            label="Select Team Members"
+            placeholder="Search and select members..."
+          />
+
+          {members.length > 0 && (
+            <Box sx={{ mt: 3 }}>
+              <Typography sx={{ color: '#2f4367', fontWeight: 700, mb: 1.5, fontSize: '0.875rem' }}>
+                Current Team Members ({members.length})
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {members.map((member) => (
+                  <Chip
+                    key={member.id}
+                    avatar={
+                      <Avatar sx={{ bgcolor: '#e8edf5', color: '#70809d', fontSize: '0.75rem', fontWeight: 900 }}>
+                        {member.username?.[0]?.toUpperCase()}
+                      </Avatar>
+                    }
+                    label={member.username}
+                    sx={{ bgcolor: '#f6f8fb', color: '#2f4367', fontWeight: 700 }}
+                  />
+                ))}
+              </Box>
+            </Box>
+          )}
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setMemberModalOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleAddMember}>Add Member</Button>
+          <Button onClick={() => { setMemberModalOpen(false); setSelectedMemberIds([]); }}>Cancel</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleAddMember}
+            disabled={selectedMemberIds.length === 0}
+          >
+            Add {selectedMemberIds.length > 0 ? `${selectedMemberIds.length} ` : ''}Member{selectedMemberIds.length !== 1 ? 's' : ''}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
