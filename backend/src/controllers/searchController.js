@@ -9,7 +9,9 @@ const { pool } = require('../config/db');
 const highlightText = (text, query) => {
   if (!text || !query) return text;
   
-  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  // Properly escape regex special characters
+  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escapedQuery})`, 'gi');
   return text.replace(regex, '<mark>$1</mark>');
 };
 
