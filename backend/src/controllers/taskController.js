@@ -1,4 +1,48 @@
 const { pool } = require('../config/db');
+const { createNotification } = require('./notificationController');
+
+// Helper function to extract @mentions from text
+const extractMentions = (text) => {
+  if (!text) return [];
+  const mentionRegex = /@(\w+)/g;
+  const mentions = [];
+  let match;
+  while ((match = mentionRegex.exec(text)) !== null) {
+    mentions.push(match[1]);
+  }
+  return mentions;
+};
+
+// Helper function to get user IDs from usernames
+const getUserIdsByUsernames = async (usernames) => {
+  if (usernames.length === 0) return [];
+  const placeholders = usernames.map((_, i) => `$${i + 1}`).join(', ');
+  const result = await pool.query(
+    `SELECT id, username FROM users WHERE username IN (${placeholders})`,
+    usernames
+  );
+  return result.rows;
+};
+
+// Helper function to create mention notifications
+const createMentionNotifications = async (text, taskId, projectId, excludeUserId) => {
+  const mentions = extractMentions(text);
+  if (mentions.length === 0) return;
+
+  const users = await getUserIdsByUsernames(mentions);
+  
+  for (const user of users) {
+    // Don't notify the user who created the mention
+    if (user.id !== excludeUserId) {
+      await createNotification(
+        user.id,
+        'mention',
+        `You were mentioned in a task`,
+        taskId
+      );
+    }
+  }
+};
 
 // Create a new task (Admin only)
 const createTask = async (req, res) => {
@@ -39,9 +83,30 @@ const createTask = async (req, res) => {
       [title, description, due_date || null, priority || 'Medium', req.body.status || 'To Do', assigned_user_id || null, project_id]
     );
 
+    const newTask = taskResult.rows[0];
+
+    // Send notification if task is assigned to someone
+    if (assigned_user_id && assigned_user_id !== '') {
+      // Get the username of the admin who created the task
+      const adminResult = await pool.query('SELECT username FROM users WHERE id = $1', [adminId]);
+      const adminUsername = adminResult.rows[0]?.username || 'An admin';
+      
+      await createNotification(
+        assigned_user_id,
+        'task_assigned',
+        `You have been assigned to task: "${newTask.title}"`,
+        newTask.id
+      );
+    }
+
+    // Check for mentions in description and notify mentioned users
+    if (description) {
+      await createMentionNotifications(description, newTask.id, project_id, adminId);
+    }
+
     res.status(201).json({
       message: 'Task created successfully',
-      task: taskResult.rows[0]
+      task: newTask
     });
   } catch (error) {
     console.error('Error creating task:', error);
@@ -69,7 +134,7 @@ const getMyTasks = async (req, res) => {
 // Update a task (Assignee or Admin)
 const updateTask = async (req, res) => {
   const { taskId } = req.params;
-  const { status } = req.body; // Usually members just update status
+  const { status, description } = req.body; // Usually members just update status
   const userId = req.user.id;
 
   try {
@@ -87,6 +152,8 @@ const updateTask = async (req, res) => {
     }
 
     const task = taskResult.rows[0];
+    const oldStatus = task.status;
+    const oldAssignedUserId = task.assigned_user_id;
 
     // Check permissions: must be assigned user OR project admin
     if (task.assigned_user_id !== userId && task.admin_id !== userId) {
@@ -94,10 +161,30 @@ const updateTask = async (req, res) => {
     }
 
     // Update status
+    const newStatus = status || task.status;
     const updatedTask = await pool.query(
       'UPDATE tasks SET status = $1 WHERE id = $2 RETURNING *',
-      [status || task.status, taskId]
+      [newStatus, taskId]
     );
+
+    // Get the project info for notifications
+    const projectResult = await pool.query('SELECT name FROM projects WHERE id = $1', [task.project_id]);
+    const projectName = projectResult.rows[0]?.name || 'a project';
+
+    // Send notification if status changed
+    if (status && status !== oldStatus && task.assigned_user_id) {
+      await createNotification(
+        task.assigned_user_id,
+        'status_change',
+        `Task "${task.title}" status changed from "${oldStatus}" to "${newStatus}"`,
+        task.id
+      );
+    }
+
+    // Check for mentions in description updates
+    if (description && description !== task.description) {
+      await createMentionNotifications(description, task.id, task.project_id, userId);
+    }
 
     res.status(200).json({
       message: 'Task updated successfully',

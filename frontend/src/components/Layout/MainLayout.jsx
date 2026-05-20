@@ -31,6 +31,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { SearchInput } from '../Search';
 import PremiumIcon from '../PremiumIcon';
+import NotificationBell from '../NotificationBell';
 
 const drawerWidth = 314;
 const collapsedWidth = 92;
@@ -343,6 +344,7 @@ export default function MainLayout() {
             <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
               <SearchInput variant="topbar" />
             </Box>
+            <NotificationBell />
             <Button
               onClick={handleLogout}
               endIcon={<LogOut size={16} />}

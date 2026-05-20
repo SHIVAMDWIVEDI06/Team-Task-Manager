@@ -1,4 +1,5 @@
 const { pool } = require('../config/db');
+const { createNotification } = require('./notificationController');
 
 // Create a new project
 const createProject = async (req, res) => {
@@ -69,6 +70,15 @@ const addMember = async (req, res) => {
     await pool.query(
       'INSERT INTO project_members (project_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
       [projectId, userId]
+    );
+
+    // Send notification to the added user
+    const projectName = projectResult.rows[0].name;
+    await createNotification(
+      userId,
+      'member_added',
+      `You have been added to project: "${projectName}"`,
+      projectId
     );
 
     res.status(200).json({ message: 'User added to project successfully' });

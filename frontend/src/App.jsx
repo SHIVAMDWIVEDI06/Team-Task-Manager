@@ -17,6 +17,7 @@ import ProjectDetail from './pages/ProjectDetail';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import Team from './pages/Team';
+import Profile from './pages/Profile';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
@@ -59,6 +60,7 @@ function App() {
                       <Route path="projects" element={<Projects />} />
                       <Route path="projects/:projectId" element={<ProjectDetail />} />
                       <Route path="team" element={<Team />} />
+                      <Route path="profile" element={<Profile />} />
                     </Route>
 
                     {/* Fallback */}

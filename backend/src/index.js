@@ -13,6 +13,8 @@ const taskRoutes = require('./routes/taskRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const statisticsRoutes = require('./routes/statisticsRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const profileRoutes = require('./routes/profileRoutes');
 
 // Initialize database tables on startup
 async function initializeDatabase() {
@@ -56,6 +58,22 @@ async function initializeDatabase() {
         assigned_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+
+      -- Notifications Table
+      CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        type VARCHAR(50) NOT NULL,
+        message TEXT NOT NULL,
+        related_id INTEGER,
+        is_read BOOLEAN DEFAULT false,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      -- Create indexes for notifications table
+      CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+      CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at);
+      CREATE INDEX IF NOT EXISTS idx_notifications_user_id_is_read ON notifications(user_id, is_read);
     `;
     
     await pool.query(schemaQuery);
@@ -78,6 +96,8 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/statistics', statisticsRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/profile', profileRoutes);
 
 app.get('/api/health', async (req, res) => {
   try {

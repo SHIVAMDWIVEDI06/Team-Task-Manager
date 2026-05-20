@@ -24,6 +24,7 @@ const createNotification = async (userId, type, message, relatedId = null) => {
 
 /**
  * Get notifications for a user with pagination
+ * Enriches notifications with additional metadata (e.g., project_id for task-related notifications)
  */
 const getNotifications = async (req, res) => {
   const userId = req.user.id;
@@ -32,20 +33,28 @@ const getNotifications = async (req, res) => {
 
   try {
     let countQuery = 'SELECT COUNT(*) FROM notifications WHERE user_id = $1';
-    let dataQuery = 'SELECT * FROM notifications WHERE user_id = $1';
+    let dataQuery = `
+      SELECT 
+        n.*,
+        t.project_id
+      FROM notifications n
+      LEFT JOIN tasks t ON n.related_id = t.id 
+        AND n.type IN ('task_assigned', 'task_status_changed', 'task_comment', 'mention')
+      WHERE n.user_id = $1
+    `;
     const queryParams = [userId];
 
     if (unread_only === 'true') {
       countQuery += ' AND is_read = false';
-      dataQuery += ' AND is_read = false';
+      dataQuery += ' AND n.is_read = false';
     }
 
     // Get total count
     const countResult = await pool.query(countQuery, queryParams);
     const total = parseInt(countResult.rows[0].count);
 
-    // Get paginated notifications
-    dataQuery += ' ORDER BY created_at DESC LIMIT $2 OFFSET $3';
+    // Get paginated notifications with enriched data
+    dataQuery += ' ORDER BY n.created_at DESC LIMIT $2 OFFSET $3';
     queryParams.push(limit, offset);
     
     const notificationsResult = await pool.query(dataQuery, queryParams);
