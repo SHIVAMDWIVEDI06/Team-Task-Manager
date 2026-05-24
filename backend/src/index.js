@@ -47,6 +47,16 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/invitations', invitationRoutes);
 app.use('/api/collaboration', collaborationRoutes);
 
+const path = require('path');
+
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, '../../frontend/dist')));
+
+// Catch-all route to serve React app for non-API requests
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
