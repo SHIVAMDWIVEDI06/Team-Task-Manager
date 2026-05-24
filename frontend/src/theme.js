@@ -1,95 +1,107 @@
 import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
+  typography: {
+    fontFamily: '"Inter", "system-ui", "sans-serif"',
+    h1: { fontWeight: 900 },
+    h2: { fontWeight: 800 },
+    h3: { fontWeight: 800 },
+    h4: { fontWeight: 800 },
+    h5: { fontWeight: 700 },
+    h6: { fontWeight: 700 },
+    button: { textTransform: 'none', fontWeight: 600 },
+  },
   palette: {
+    mode: 'light',
     primary: {
       main: '#fb5b3f',
-      light: '#ff8a4c',
-      dark: '#e74732',
-      contrastText: '#fff',
+      light: '#ff8a75',
+      dark: '#d94126',
     },
     secondary: {
-      main: '#334767',
-      light: '#64748b',
-      dark: '#22314d',
-    },
-    success: {
-      main: '#22c98a',
-      light: '#dff8ee',
-      dark: '#159664',
-    },
-    warning: {
-      main: '#ff9b3d',
-      light: '#fff2e3',
-      dark: '#d96c12',
-    },
-    error: {
-      main: '#f43f5e',
-      light: '#ffe4ea',
-      dark: '#be123c',
-    },
-    info: {
-      main: '#2ec4b6',
-      light: '#ddf8f5',
-      dark: '#168b81',
+      main: '#2f4367',
+      light: '#4d638c',
+      dark: '#1e2c47',
     },
     background: {
-      default: '#f5f7fb',
+      default: '#f4f7fb',
       paper: '#ffffff',
     },
     text: {
-      primary: '#2f4367',
-      secondary: '#70809d',
+      primary: '#1e293b',
+      secondary: '#64748b',
     },
   },
-  typography: {
-    fontFamily: '"Plus Jakarta Sans", "Outfit", sans-serif',
-    h1: { fontFamily: '"Outfit", sans-serif', fontWeight: 800 },
-    h2: { fontFamily: '"Outfit", sans-serif', fontWeight: 800 },
-    h3: { fontFamily: '"Outfit", sans-serif', fontWeight: 800 },
-    h4: { fontFamily: '"Outfit", sans-serif', fontWeight: 800 },
-    h5: { fontFamily: '"Outfit", sans-serif', fontWeight: 800 },
-    h6: { fontFamily: '"Outfit", sans-serif', fontWeight: 800 },
-    button: { textTransform: 'none', fontWeight: 700 },
-  },
   shape: {
-    borderRadius: 8,
+    borderRadius: 12,
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
-          padding: '9px 18px',
+          borderRadius: '8px',
           boxShadow: 'none',
+          padding: '8px 16px',
           '&:hover': {
-            boxShadow: '0 10px 24px rgba(251, 91, 63, 0.2)',
+            boxShadow: '0 4px 12px rgba(251, 91, 63, 0.25)',
           },
+        },
+        containedPrimary: {
+          background: 'linear-gradient(135deg, #ff7a55 0%, #fb5b3f 100%)',
         },
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          boxShadow: '0 16px 34px rgba(47, 67, 103, 0.08)',
+          backgroundImage: 'none',
+        },
+        elevation1: {
+          boxShadow: '0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 0 3px rgba(15, 23, 42, 0.02)',
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: '0 16px 34px rgba(47, 67, 103, 0.08)',
+          borderRadius: '16px',
+          boxShadow: '0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 0 3px rgba(15, 23, 42, 0.02)',
+          border: '1px solid rgba(226, 232, 240, 0.8)',
         },
       },
     },
-    MuiOutlinedInput: {
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          borderRadius: '20px',
+          boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
+        },
+      },
+    },
+    MuiTextField: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
-          backgroundColor: '#fff',
+          '& .MuiOutlinedInput-root': {
+            borderRadius: '8px',
+            backgroundColor: '#f8fafc',
+            transition: 'all 0.2s',
+            '&:hover': {
+              backgroundColor: '#ffffff',
+            },
+            '&.Mui-focused': {
+              backgroundColor: '#ffffff',
+              boxShadow: '0 0 0 4px rgba(251, 91, 63, 0.1)',
+            },
+          },
         },
-        notchedOutline: {
-          borderColor: '#e8edf5',
+      },
+    },
+    MuiMenu: {
+      styleOverrides: {
+        paper: {
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.1)',
         },
       },
     },

@@ -34,9 +34,9 @@ const ProtectedRoute = ({ children }) => {
 
 function App() {
   return (
-    <ErrorBoundary>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <ErrorBoundary>
         <AuthProvider>
           <NotificationProvider>
             <SearchProvider>
@@ -79,8 +79,8 @@ function App() {
             </SearchProvider>
           </NotificationProvider>
         </AuthProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </ThemeProvider>
   );
 }
 

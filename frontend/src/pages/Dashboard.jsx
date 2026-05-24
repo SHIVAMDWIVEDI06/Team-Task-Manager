@@ -37,21 +37,14 @@ import {
 import { API_BASE_URL } from '../config';
 import PremiumIcon from '../components/PremiumIcon';
 
-const cardSx = {
-  borderRadius: '8px',
-  border: '1px solid #e8edf5',
-  boxShadow: '0 16px 34px rgba(47, 67, 103, 0.08)',
-  bgcolor: '#fff',
-};
-
 const StatCard = ({ title, value, helper, icon, tone, loading }) => (
-  <Paper sx={{ ...cardSx, p: 2.75, height: '100%' }}>
+  <Paper className="glass-panel hover-lift premium-shadow" sx={{ p: 2.75, height: '100%', borderRadius: '16px' }}>
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
       <Box>
-        <Typography sx={{ color: '#5b6d8a', fontWeight: 800, fontSize: '0.78rem', textTransform: 'uppercase' }}>
+        <Typography sx={{ color: 'var(--text-secondary)', fontWeight: 800, fontSize: '0.78rem', textTransform: 'uppercase' }}>
           {title}
         </Typography>
-        <Typography variant="h4" sx={{ color: '#2f4367', fontWeight: 900, mt: 0.75 }}>
+        <Typography variant="h4" sx={{ color: 'var(--text-primary)', fontWeight: 900, mt: 0.75 }}>
           {loading ? <Skeleton width={72} /> : value}
         </Typography>
       </Box>
@@ -59,7 +52,7 @@ const StatCard = ({ title, value, helper, icon, tone, loading }) => (
         {icon}
       </PremiumIcon>
     </Box>
-    <Typography sx={{ color: '#70809d', fontWeight: 600, mt: 2 }}>
+    <Typography sx={{ color: 'var(--text-tertiary)', fontWeight: 600, mt: 2 }}>
       <Box component="span" sx={{ color: helper?.startsWith('-') ? '#f43f5e' : '#22c98a', fontWeight: 900 }}>
         {helper?.split(' ')[0]}
       </Box>{' '}
@@ -238,10 +231,10 @@ export default function Dashboard() {
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '2fr 1.05fr' }, gap: 3 }}>
         <Box sx={{ minWidth: 0 }}>
-          <Paper sx={{ ...cardSx, p: 3, height: 430 }}>
+          <Paper className="glass-panel premium-shadow" sx={{ p: 3, height: 430, borderRadius: '16px' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Box>
-                <Typography variant="h6" sx={{ color: '#2f4367' }}>
+                <Typography variant="h6" sx={{ color: 'var(--text-primary)' }}>
                   Task Flow Overview
                 </Typography>
                 <Typography sx={{ color: '#70809d', fontWeight: 700, fontSize: '0.92rem' }}>
@@ -279,8 +272,8 @@ export default function Dashboard() {
 
         <Box sx={{ minWidth: 0 }}>
           <Paper
+            className="hover-lift premium-shadow"
             sx={{
-              ...cardSx,
               height: 430,
               p: 3,
               color: '#fff',
@@ -330,8 +323,8 @@ export default function Dashboard() {
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, minmax(0, 1fr))' }, gap: 3, mt: 3 }}>
         <Box sx={{ minWidth: 0 }}>
-          <Paper sx={{ ...cardSx, p: 3, minHeight: 330 }}>
-            <Typography variant="h6" sx={{ color: '#2f4367', mb: 3 }}>
+          <Paper className="glass-panel premium-shadow" sx={{ p: 3, minHeight: 330, borderRadius: '16px' }}>
+            <Typography variant="h6" sx={{ color: 'var(--text-primary)', mb: 3 }}>
               Task Distribution
             </Typography>
             <Box sx={{ height: 205, position: 'relative' }}>
@@ -366,10 +359,10 @@ export default function Dashboard() {
         </Box>
 
         <Box sx={{ minWidth: 0 }}>
-          <Paper sx={{ ...cardSx, p: 3, minHeight: 330 }}>
+          <Paper className="glass-panel premium-shadow hover-lift" sx={{ p: 3, minHeight: 330, borderRadius: '16px' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
               <Users size={21} color="#fb5b3f" />
-              <Typography variant="h6" sx={{ color: '#2f4367' }}>
+              <Typography variant="h6" sx={{ color: 'var(--text-primary)' }}>
                 Team Workload
               </Typography>
             </Box>
@@ -407,10 +400,10 @@ export default function Dashboard() {
         </Box>
 
         <Box sx={{ minWidth: 0 }}>
-          <Paper sx={{ ...cardSx, p: 3, minHeight: 330 }}>
+          <Paper className="glass-panel premium-shadow" sx={{ p: 3, minHeight: 330, borderRadius: '16px' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
               <AlertCircle size={21} color="#f43f5e" />
-              <Typography variant="h6" sx={{ color: '#2f4367' }}>
+              <Typography variant="h6" sx={{ color: 'var(--text-primary)' }}>
                 High Priority Alerts
               </Typography>
             </Box>

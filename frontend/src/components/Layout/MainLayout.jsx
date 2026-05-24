@@ -314,18 +314,23 @@ export default function MainLayout() {
         }}
       >
         <Box
+          component="header"
           sx={{
-            px: { xs: 2, sm: 3, lg: 4 },
-            pt: { xs: 2.5, md: 2.5 },
-            pb: 4,
+            height: 80,
+            px: { xs: 2, sm: 4 },
             display: 'flex',
-            alignItems: 'flex-start',
+            alignItems: 'center',
             justifyContent: 'space-between',
-            gap: 2,
-            color: '#fff',
+            position: 'sticky',
+            top: 0,
+            zIndex: 10,
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            backgroundColor: 'var(--bg-glass)',
+            borderBottom: '1px solid var(--border-light)',
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
             {isMobile && (
               <IconButton
                 onClick={() => setMobileOpen(true)}
@@ -348,30 +353,39 @@ export default function MainLayout() {
             </Box>
             <NotificationBell />
             <Button
-              onClick={handleLogout}
-              endIcon={<LogOut size={16} />}
-              sx={{
-                color: '#fff',
-                px: { xs: 1, md: 2 },
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.14)', boxShadow: 'none' },
-              }}
-            >
-              Log out
-            </Button>
-            <Avatar
               onClick={(e) => setAnchorEl(e.currentTarget)}
-              src={user?.avatar || undefined}
               sx={{
-                width: 38,
-                height: 38,
-                cursor: 'pointer',
-                bgcolor: '#fff',
-                color: '#fb5b3f',
-                fontWeight: 900,
+                p: 0.5,
+                minWidth: 'auto',
+                borderRadius: '12px',
+                border: '1px solid var(--border-light)',
+                bgcolor: 'var(--bg-surface)',
+                '&:hover': { bgcolor: '#f1f5f9', transform: 'translateY(-2px)' },
+                transition: 'all 0.2s',
               }}
             >
-              {user?.username?.[0]?.toUpperCase() || '?'}
-            </Avatar>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 1 }}>
+                <Avatar
+                  sx={{
+                    width: 36,
+                    height: 36,
+                    bgcolor: 'var(--accent-primary)',
+                    fontWeight: 800,
+                    fontSize: '1rem',
+                  }}
+                >
+                  {user?.username?.[0]?.toUpperCase() || 'U'}
+                </Avatar>
+                <Box sx={{ display: { xs: 'none', sm: 'block' }, textAlign: 'left' }}>
+                  <Typography sx={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '0.85rem', lineHeight: 1.2 }}>
+                    {user?.username}
+                  </Typography>
+                  <Typography sx={{ color: 'var(--text-secondary)', fontSize: '0.7rem', fontWeight: 600 }}>
+                    {user?.role === 'admin' ? 'Workspace Admin' : 'Member'}
+                  </Typography>
+                </Box>
+              </Box>
+            </Button>
           </Box>
         </Box>
 

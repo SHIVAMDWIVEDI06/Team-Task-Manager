@@ -44,14 +44,15 @@ export default function Signup({ onToggleMode }) {
   };
 
   return (
-    <Box className="argon-gradient" sx={{ minHeight: '100vh', py: { xs: 3, md: 6 }, display: 'flex', alignItems: 'center' }}>
+    <Box sx={{ minHeight: '100vh', py: { xs: 3, md: 6 }, display: 'flex', alignItems: 'center' }}>
       <Container maxWidth="lg">
         <Paper
+          className="glass-panel"
           sx={{
             overflow: 'hidden',
-            borderRadius: '8px',
-            border: '1px solid rgba(255,255,255,0.45)',
-            boxShadow: '0 24px 60px rgba(47, 67, 103, 0.22)',
+            borderRadius: '20px',
+            border: '1px solid var(--border-light)',
+            boxShadow: '0 24px 60px rgba(47, 67, 103, 0.12)',
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: '0.95fr 1.05fr' },
           }}

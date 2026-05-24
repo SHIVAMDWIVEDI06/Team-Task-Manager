@@ -49,16 +49,16 @@ const TaskCard = ({ task, onClick, onDelete }) => {
   return (
     <motion.div layout initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
       <Paper
+        className="hover-lift"
         onClick={() => onClick(task)}
         sx={{
           p: 2,
           mb: 1.6,
           cursor: 'pointer',
-          borderRadius: '8px',
-          border: '1px solid #e8edf5',
-          boxShadow: '0 10px 24px rgba(47, 67, 103, 0.07)',
-          '&:hover': { borderColor: '#ffb08b', transform: 'translateY(-2px)' },
-          transition: 'all 0.2s ease',
+          borderRadius: '12px',
+          border: '1px solid var(--border-light)',
+          bgcolor: 'var(--bg-surface)',
+          boxShadow: '0 4px 12px rgba(47, 67, 103, 0.05)',
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, mb: 1.5 }}>
@@ -112,10 +112,9 @@ const TaskCard = ({ task, onClick, onDelete }) => {
 const KanbanColumn = ({ title, tasks, onTaskClick, onDelete, color }) => (
   <Box sx={{ minWidth: 0 }}>
     <Box
+      className="glass-panel"
       sx={{
-        borderRadius: '8px',
-        border: '1px solid #e8edf5',
-        bgcolor: 'rgba(255,255,255,0.72)',
+        borderRadius: '16px',
         p: 2,
         minHeight: 560,
       }}
@@ -350,13 +349,11 @@ export default function ProjectDetail() {
   return (
     <Box sx={{ pb: 4 }}>
       <Paper
+        className="glass-panel premium-shadow"
         sx={{
           p: { xs: 2, md: 3 },
           mb: 3,
-          borderRadius: '8px',
-          border: '1px solid rgba(255,255,255,0.65)',
-          bgcolor: 'rgba(255,255,255,0.92)',
-          boxShadow: '0 16px 34px rgba(47, 67, 103, 0.1)',
+          borderRadius: '16px',
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'stretch', md: 'center' }, gap: 2, flexDirection: { xs: 'column', md: 'row' } }}>
@@ -440,7 +437,7 @@ export default function ProjectDetail() {
               </Button>
             )}
             {isAdmin && (
-              <Button variant="contained" startIcon={<Plus size={16} />} onClick={() => setCreateModalOpen(true)}>
+              <Button variant="contained" sx={{ background: 'linear-gradient(135deg, #ff7a55 0%, #fb5b3f 100%)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(251, 91, 63, 0.25)' }} startIcon={<Plus size={16} />} onClick={() => setCreateModalOpen(true)}>
                 Add Task
               </Button>
             )}
