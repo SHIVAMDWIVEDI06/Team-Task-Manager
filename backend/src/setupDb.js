@@ -2,13 +2,15 @@ require('dotenv').config();
 const { Client } = require('pg');
 
 async function setup() {
-  const targetClient = new Client({
-    user: process.env.DB_USER || 'postgres',
-    host: process.env.DB_HOST || 'localhost',
-    database: process.env.DB_NAME || 'team_task_manager',
-    password: process.env.DB_PASSWORD || 'password',
-    port: process.env.DB_PORT || 5432,
-  });
+  const targetClient = process.env.DATABASE_URL 
+    ? new Client({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } })
+    : new Client({
+        user: process.env.DB_USER || 'postgres',
+        host: process.env.DB_HOST || 'localhost',
+        database: process.env.DB_NAME || 'team_task_manager',
+        password: process.env.DB_PASSWORD || 'password',
+        port: process.env.DB_PORT || 5432,
+      });
 
   try {
     await targetClient.connect();
