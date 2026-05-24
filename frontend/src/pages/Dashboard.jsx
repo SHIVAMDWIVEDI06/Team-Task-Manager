@@ -205,7 +205,7 @@ export default function Dashboard() {
         <StatCard
           title="Total Tasks"
           value={totalTasks}
-          helper="+100% project scope"
+          helper={`${data?.trends?.taskTrend >= 0 ? '+' : ''}${data?.trends?.taskTrend || 0}% vs last week`}
           icon={<Clock3 size={25} />}
           tone="coral"
           loading={loading}
@@ -213,7 +213,7 @@ export default function Dashboard() {
         <StatCard
           title="Completed"
           value={doneTasks}
-          helper={`${efficiency}% completion rate`}
+          helper={`${data?.trends?.doneTrend >= 0 ? '+' : ''}${data?.trends?.doneTrend || 0}% vs last week`}
           icon={<CheckCircle2 size={25} />}
           tone="green"
           loading={loading}

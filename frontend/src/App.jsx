@@ -16,13 +16,18 @@ import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import Login from './components/Login';
 import Signup from './components/Signup';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 import Team from './pages/Team';
 import Profile from './pages/Profile';
+import Settings from './pages/Settings';
+
+import GlobalLoader from './components/GlobalLoader';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  if (loading) return null; // Or a full screen loader
+  if (loading) return <GlobalLoader open={true} message="Authenticating..." />;
   if (!user) return <Navigate to="/login" />;
   return children;
 };
@@ -53,6 +58,8 @@ function App() {
                     {/* Public Routes */}
                     <Route path="/login" element={<LoginWrapper />} />
                     <Route path="/signup" element={<SignupWrapper />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password/:token" element={<ResetPassword />} />
 
                     {/* Private Routes */}
                     <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
@@ -61,6 +68,7 @@ function App() {
                       <Route path="projects/:projectId" element={<ProjectDetail />} />
                       <Route path="team" element={<Team />} />
                       <Route path="profile" element={<Profile />} />
+                      <Route path="settings" element={<Settings />} />
                     </Route>
 
                     {/* Fallback */}

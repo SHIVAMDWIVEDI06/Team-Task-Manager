@@ -1,71 +1,62 @@
-# Team Task Manager - Full-Stack Coding Assignment
+# Team Task Manager
 
-A professional, high-performance Team Task Management application built with Node.js, PostgreSQL, and React. Designed to help teams collaborate, assign tasks, and track progress with real-time analytics.
+This is a full-stack web application designed for task management within a team.
 
-# 🚀 Live Demo
-- URL: https://team-task-manager-production-718d.up.railway.app/
-- Admin Login: `admin@test.com` / `password123` (or create your own)
+## Architecture
 
-# ✨ Features
+This repository is structured as a monorepo containing both the frontend and backend codebases.
 
-## 1. User Authentication
-- Secure JWT-based authentication.
-- Signup with name, email, and password.
-- Protected routes and session management.
+### Tech Stack
+*   **Frontend:** React 19, Vite, Tailwind CSS v4, Material UI (MUI) v6
+*   **Backend:** Node.js, Express, PostgreSQL (`pg` driver)
 
-## 2. Project Management
-- Create projects (creator automatically becomes Project Admin).
-- Admins can add/remove members from their projects.
-- Dashboard overview of all projects.
+### Folder Structure
+```text
+TeamTaskManager/
+├── frontend/             # React single-page application (Vite)
+│   ├── src/              # React source code
+│   ├── public/           # Static assets
+│   ├── package.json      # Frontend dependencies & scripts
+│   └── vite.config.js    # Vite configuration
+├── backend/              # Node.js API server
+│   ├── src/              # Express backend source code
+│   │   ├── index.js      # Server entry point
+│   │   └── config/       # Configuration (e.g. database setup)
+│   ├── package.json      # Backend dependencies & scripts
+│   └── .env              # Environment variables (DB config)
+└── README.md             # This architecture document
+```
 
-## 3. Task Management (Visual Kanban)
-- Visual Board: Three columns: *To Do*, *In Progress*, and *Done*.
-- Task Cards: Displays title, assignee, and color-coded priority (High, Medium, Low).
-- Interactivity: Quick Edit modal to update status and due dates instantly.
+## Getting Started
 
-## 4. Analytical Dashboard
-- Total Tasks Count: Live tracking of project volume.
-- Completion Rate: Visual percentage of finished work.
-- Team Workload: Analytics on tasks per user.
-- Critical Alerts: Panel for overdue high-priority tasks.
+### Prerequisites
+*   Node.js installed
+*   PostgreSQL installed and running
 
-## 5. Role-Based Access Control (RBAC)
-- Admin: Can create projects, delete projects, manage members, and create/edit any task.
-- Member: Can view assigned projects and only view/update tasks assigned to them.
+### Backend Setup
+1.  Navigate to the `backend` directory: `cd backend`
+2.  Install dependencies: `npm install`
+3.  Ensure your PostgreSQL server is running and matches the `.env` configuration (default: DB `team_task_manager`, user `postgres`, password `your_password`). You may need to create the database manually first:
+    ```sql
+    CREATE DATABASE team_task_manager;
+    ```
+4.  Start the development server: `npm run dev`
+    *   The backend will run on `http://localhost:5000`
 
-# 🛠️ Tech Stack
-- Frontend: React (Vite), Material UI (MUI), Tailwind CSS v4, Framer Motion (Animations).
-- Backend: Node.js, Express, PostgreSQL (pg).
-- Database: PostgreSQL with optimized analytical queries (CTEs).
-- Icons: Lucide React.
+### Frontend Setup
+1.  Navigate to the `frontend` directory: `cd frontend`
+2.  Install dependencies: `npm install`
+3.  Start the development server: `npm run dev`
+    *   Vite will start the frontend on `http://localhost:5173` (or similar).
 
-# 📦 Setup Instructions
+## Environment Variables
+The `backend/.env` file controls the database connection. Make sure to update `DB_PASSWORD` or other fields as necessary for your local environment.
 
-## Backend Setup
-1. `cd backend`
-2. `npm install`
-3. Create a `.env` file:
-   ```env
-   PORT=5000
-   DATABASE_URL=your_postgresql_url
-   JWT_SECRET=your_super_secret_key
-   ```
-4. Run migrations: `npm run setup:db`
-5. Start server: `npm run start`
-
-## Frontend Setup
-1. `cd frontend`
-2. `npm install`
-3. Start development: `npm run dev`
-
-# 🚢 Deployment (Railway)
-1. Push this repository to GitHub.
-2. Connect your repository to Railway.app.
-3. Add the environment variables (`DATABASE_URL`, `JWT_SECRET`) in the Railway dashboard.
-4. Railway will automatically detect the `npm start` script for the backend and `npm run build` for the frontend.
-
-# 🎥 Demo Video
-https://drive.google.com/file/d/1E85wQOMIctg_2JFzxQ2A3oJpBgNEYKpE/view?usp=sharing
-
----
-Developed as part of a Full-Stack Coding Assignment.
+```env
+PORT=5000
+DB_USER=postgres
+DB_HOST=localhost
+DB_NAME=team_task_manager
+DB_PASSWORD=your_password
+DB_PORT=5432
+```

@@ -137,6 +137,15 @@ export default function Login({ onToggleMode }) {
                   },
                 }}
               />
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                <Link 
+                  href="#" 
+                  onClick={(e) => { e.preventDefault(); navigate('/forgot-password'); }} 
+                  sx={{ color: '#fb5b3f', fontSize: '0.85rem', fontWeight: 800, textDecoration: 'none' }}
+                >
+                  Forgot Password?
+                </Link>
+              </Box>
               <Button type="submit" fullWidth variant="contained" disabled={loading} sx={{ py: 1.4, mt: 3, mb: 2 }}>
                 {loading ? <CircularProgress size={23} color="inherit" /> : 'Sign In'}
               </Button>

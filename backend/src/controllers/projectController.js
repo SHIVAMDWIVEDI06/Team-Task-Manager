@@ -94,7 +94,14 @@ const getProjects = async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT p.* FROM projects p 
+      `SELECT p.*, 
+        (
+          SELECT json_agg(json_build_object('id', u.id, 'username', u.username)) 
+          FROM project_members pm2 
+          JOIN users u ON pm2.user_id = u.id 
+          WHERE pm2.project_id = p.id
+        ) as members
+       FROM projects p 
        JOIN project_members pm ON p.id = pm.project_id 
        WHERE pm.user_id = $1`,
       [userId]

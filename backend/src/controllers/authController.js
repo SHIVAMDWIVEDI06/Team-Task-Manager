@@ -1,6 +1,7 @@
 const { pool } = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 const signup = async (req, res) => {
   try {
@@ -100,7 +101,7 @@ const login = async (req, res) => {
 // Get all users
 const getUsers = async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, username, email, role FROM users ORDER BY username ASC');
+    const result = await pool.query('SELECT id, username, email, role, created_at, last_active FROM users ORDER BY username ASC');
     res.status(200).json(result.rows);
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -108,8 +109,81 @@ const getUsers = async (req, res) => {
   }
 };
 
+// Forgot Password
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+
+    const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (userResult.rows.length === 0) {
+      // Return 200 even if user not found to prevent email enumeration
+      return res.status(200).json({ message: 'If that email exists, a reset link has been sent.' });
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenHash = await bcrypt.hash(resetToken, 10);
+    // Expires in 1 hour
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await pool.query(
+      'UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE email = $3',
+      [resetTokenHash, expiresAt, email]
+    );
+
+    // In a real app, send email here. For now, we simulate it.
+    console.log(`[SIMULATED EMAIL] Password reset link: http://localhost:5173/reset-password/${resetToken}?email=${encodeURIComponent(email)}`);
+
+    res.status(200).json({ message: 'If that email exists, a reset link has been sent.' });
+  } catch (error) {
+    console.error('Error in forgot password:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Reset Password
+const resetPassword = async (req, res) => {
+  try {
+    const { email, token, newPassword } = req.body;
+    if (!email || !token || !newPassword) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (userResult.rows.length === 0) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    const user = userResult.rows[0];
+
+    if (!user.reset_token || !user.reset_token_expires || new Date() > user.reset_token_expires) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    const isValidToken = await bcrypt.compare(token, user.reset_token);
+    if (!isValidToken) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    await pool.query(
+      'UPDATE users SET password = $1, reset_token = NULL, reset_token_expires = NULL WHERE email = $2',
+      [hashedPassword, email]
+    );
+
+    res.status(200).json({ message: 'Password has been reset successfully' });
+  } catch (error) {
+    console.error('Error in reset password:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 module.exports = {
   signup,
   login,
-  getUsers
+  getUsers,
+  forgotPassword,
+  resetPassword
 };

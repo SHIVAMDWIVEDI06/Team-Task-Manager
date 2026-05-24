@@ -22,11 +22,23 @@ import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../config';
 import PremiumIcon from '../components/PremiumIcon';
 import UserStatsModal from '../components/UserStatsModal';
+import InvitationModal from '../components/InvitationModal';
+
+const getActivityStatus = (lastActive) => {
+  if (!lastActive) return { label: 'OFFLINE', color: '#a0abc0', dot: '#cbd5e1' };
+  
+  const diffMinutes = (new Date() - new Date(lastActive)) / (1000 * 60);
+  
+  if (diffMinutes < 5) return { label: 'ONLINE', color: '#159664', dot: '#22c98a' };
+  if (diffMinutes < 30) return { label: 'AWAY', color: '#ff9b3d', dot: '#ffb08b' };
+  return { label: 'OFFLINE', color: '#a0abc0', dot: '#cbd5e1' };
+};
 
 export default function Team() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statsModalOpen, setStatsModalOpen] = useState(false);
+  const [invitationModalOpen, setInvitationModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
   const handleViewStats = (user) => {
@@ -84,7 +96,7 @@ export default function Team() {
             <Search size={18} />
             <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>Search members...</Typography>
           </Box>
-          <Button variant="contained" startIcon={<UserPlus size={18} />} sx={{ bgcolor: '#fff', color: '#fb5b3f', '&:hover': { bgcolor: '#fff2e3' } }}>
+          <Button variant="contained" startIcon={<UserPlus size={18} />} onClick={() => setInvitationModalOpen(true)} sx={{ bgcolor: '#fff', color: '#fb5b3f', '&:hover': { bgcolor: '#fff2e3' } }}>
             Invite Member
           </Button>
         </Box>
@@ -186,7 +198,10 @@ export default function Team() {
                 <TableRow key={user.id} sx={{ '&:hover': { bgcolor: '#fbfcff' } }}>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Avatar sx={{ width: 34, height: 34, bgcolor: '#fb5b3f', fontWeight: 900 }}>
+                      <Avatar 
+                        src={user.avatar || undefined}
+                        sx={{ width: 34, height: 34, bgcolor: '#fb5b3f', fontWeight: 900 }}
+                      >
                         {user.username?.[0]?.toUpperCase()}
                       </Avatar>
                       <Box>
@@ -203,8 +218,10 @@ export default function Team() {
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#22c98a' }} />
-                      <Typography sx={{ color: '#159664', fontWeight: 900, fontSize: '0.76rem' }}>ACTIVE</Typography>
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: getActivityStatus(user.last_active).dot }} />
+                      <Typography sx={{ color: getActivityStatus(user.last_active).color, fontWeight: 900, fontSize: '0.76rem' }}>
+                        {getActivityStatus(user.last_active).label}
+                      </Typography>
                     </Box>
                   </TableCell>
                   <TableCell align="right">
@@ -229,6 +246,11 @@ export default function Team() {
         onClose={() => setStatsModalOpen(false)}
         userId={selectedUser?.id}
         username={selectedUser?.username}
+      />
+
+      <InvitationModal
+        open={invitationModalOpen}
+        onClose={() => setInvitationModalOpen(false)}
       />
     </Box>
   );

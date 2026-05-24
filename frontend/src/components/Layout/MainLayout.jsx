@@ -26,6 +26,8 @@ import {
   Menu as MenuIcon,
   PanelLeftClose,
   PanelLeftOpen,
+  Settings as SettingsIcon,
+  User as UserIcon,
   Users,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -358,6 +360,7 @@ export default function MainLayout() {
             </Button>
             <Avatar
               onClick={(e) => setAnchorEl(e.currentTarget)}
+              src={user?.avatar || undefined}
               sx={{
                 width: 38,
                 height: 38,
@@ -390,6 +393,24 @@ export default function MainLayout() {
             <Typography sx={{ fontWeight: 800, color: '#2f4367' }}>{user?.username}</Typography>
             <Typography sx={{ fontSize: '0.76rem', color: '#70809d' }}>{user?.role}</Typography>
           </Box>
+        </MenuItem>
+        <MenuItem 
+          onClick={() => {
+            setAnchorEl(null);
+            navigate('/profile');
+          }} 
+          sx={{ borderRadius: '8px', fontWeight: 800, color: '#2f4367' }}
+        >
+          <UserIcon size={16} style={{ marginRight: 10 }} /> My Profile
+        </MenuItem>
+        <MenuItem 
+          onClick={() => {
+            setAnchorEl(null);
+            navigate('/settings');
+          }} 
+          sx={{ borderRadius: '8px', fontWeight: 800, color: '#2f4367' }}
+        >
+          <SettingsIcon size={16} style={{ marginRight: 10 }} /> Settings
         </MenuItem>
         <MenuItem onClick={handleLogout} sx={{ borderRadius: '8px', color: 'error.main', fontWeight: 800 }}>
           <LogOut size={16} style={{ marginRight: 10 }} /> Logout

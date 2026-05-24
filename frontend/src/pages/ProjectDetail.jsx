@@ -18,7 +18,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { ArrowLeft, Calendar, Filter, FolderKanban, MoreVertical, Plus, Trash2, Users } from 'lucide-react';
+import { ArrowLeft, Calendar, Filter, FolderKanban, MoreVertical, Plus, Trash2, Users, Bell, BellRing, Activity } from 'lucide-react';
 import axios from 'axios';
 import { AnimatePresence, motion } from 'framer-motion';
 import { API_BASE_URL } from '../config';
@@ -26,6 +26,10 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import PremiumIcon from '../components/PremiumIcon';
 import MultiSelectMembers from '../components/MultiSelectMembers';
+import FilterPanel from '../components/FilterPanel';
+import { useFilters } from '../context/FilterContext';
+import TaskModal from '../components/TaskModal';
+import ActivityFeed from '../components/ActivityFeed';
 
 const priorityColors = {
   High: { color: '#f43f5e', bg: '#fff7f8', border: '#ffe4ea' },
@@ -139,6 +143,8 @@ export default function ProjectDetail() {
   const { isAdmin } = useAuth();
   const { projectId } = useParams();
   const navigate = useNavigate();
+  const searchParams = new URLSearchParams(window.location.search);
+  const urlTaskId = searchParams.get('taskId');
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [members, setMembers] = useState([]);
@@ -152,21 +158,39 @@ export default function ProjectDetail() {
   const [editData, setEditData] = useState({ status: '', due_date: '' });
   const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'Medium', assigned_user_ids: [], due_date: '' });
   const [allUsers, setAllUsers] = useState([]);
+  const [filterPanelOpen, setFilterPanelOpen] = useState(false);
+  const [activityFeedOpen, setActivityFeedOpen] = useState(false);
+  const [activities, setActivities] = useState([]);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const { applyFilters, activeFilterCount } = useFilters();
 
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const [projRes, taskRes, memberRes, allUsersRes] = await Promise.all([
+      const [projRes, taskRes, memberRes, allUsersRes, subRes, actRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/projects`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API_BASE_URL}/tasks/project/${projectId}`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API_BASE_URL}/projects/${projectId}/members`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API_BASE_URL}/auth/users`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API_BASE_URL}/collaboration/projects/${projectId}/subscription`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: { isSubscribed: false } })),
+        axios.get(`${API_BASE_URL}/collaboration/projects/${projectId}/activity`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => ({ data: [] }))
       ]);
 
       setProject(projRes.data.find((item) => item.id === parseInt(projectId, 10)));
       setTasks(taskRes.data);
       setMembers(memberRes.data);
       setAllUsers(allUsersRes.data);
+      setIsSubscribed(subRes.data.isSubscribed);
+      setActivities(actRes.data);
+      
+      // Handle URL task opening
+      if (urlTaskId && taskRes.data) {
+        const taskToOpen = taskRes.data.find(t => t.id === parseInt(urlTaskId, 10));
+        if (taskToOpen) {
+          setSelectedTask(taskToOpen);
+          setEditModalOpen(true);
+        }
+      }
     } catch (err) {
       console.error('Fetch failed', err);
     } finally {
@@ -178,14 +202,14 @@ export default function ProjectDetail() {
     fetchData();
   }, [projectId]);
 
-  const groupedTasks = useMemo(
-    () => ({
-      todo: tasks.filter((task) => task.status === 'To Do'),
-      progress: tasks.filter((task) => task.status === 'In Progress'),
-      done: tasks.filter((task) => task.status === 'Done'),
-    }),
-    [tasks]
-  );
+  const groupedTasks = useMemo(() => {
+    const filteredTasks = applyFilters(tasks);
+    return {
+      todo: filteredTasks.filter((task) => task.status === 'To Do'),
+      progress: filteredTasks.filter((task) => task.status === 'In Progress'),
+      done: filteredTasks.filter((task) => task.status === 'Done'),
+    };
+  }, [tasks, applyFilters]);
 
   const handleDeleteProject = async () => {
     try {
@@ -215,22 +239,17 @@ export default function ProjectDetail() {
 
   const handleTaskClick = (task) => {
     setSelectedTask(task);
-    setEditData({ status: task.status, due_date: task.due_date ? task.due_date.split('T')[0] : '' });
     setEditModalOpen(true);
   };
 
-  const handleSave = async () => {
+  const toggleSubscription = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`${API_BASE_URL}/tasks/${selectedTask.id}`, editData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      fetchData();
-      setEditModalOpen(false);
-      toast.success('Task updated successfully');
+      const res = await axios.post(`${API_BASE_URL}/collaboration/projects/${projectId}/subscription`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      setIsSubscribed(res.data.isSubscribed);
+      toast.success(res.data.message);
     } catch (err) {
-      console.error('Update failed', err);
-      toast.error('Failed to update task');
+      toast.error('Failed to toggle subscription');
     }
   };
 
@@ -372,8 +391,48 @@ export default function ProjectDetail() {
                 Manage Team
               </Button>
             )}
-            <Button variant="outlined" startIcon={<Filter size={16} />}>
+            <Button 
+              variant="outlined" 
+              onClick={toggleSubscription}
+              sx={{ color: isSubscribed ? '#fb5b3f' : '#70809d', borderColor: '#e8edf5' }}
+            >
+              {isSubscribed ? <BellRing size={16} /> : <Bell size={16} />}
+            </Button>
+            <Button 
+              variant="outlined" 
+              onClick={() => setActivityFeedOpen(true)}
+              sx={{ color: '#70809d', borderColor: '#e8edf5' }}
+            >
+              <Activity size={16} />
+            </Button>
+            <Button 
+              variant="outlined" 
+              startIcon={<Filter size={16} />}
+              onClick={() => setFilterPanelOpen(true)}
+              sx={{ position: 'relative' }}
+            >
               Filter
+              {activeFilterCount > 0 && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: -6,
+                    right: -6,
+                    bgcolor: '#fb5b3f',
+                    color: '#fff',
+                    borderRadius: '50%',
+                    width: 18,
+                    height: 18,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.65rem',
+                    fontWeight: 900,
+                  }}
+                >
+                  {activeFilterCount}
+                </Box>
+              )}
             </Button>
             {isAdmin && (
               <Button variant="outlined" color="error" startIcon={<Trash2 size={16} />} onClick={() => setDeleteConfirmOpen(true)}>
@@ -408,21 +467,13 @@ export default function ProjectDetail() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={editModalOpen} onClose={() => setEditModalOpen(false)} PaperProps={{ sx: { borderRadius: '8px', p: 1 } }}>
-        <DialogTitle sx={{ fontWeight: 900, color: '#2f4367' }}>Update Task</DialogTitle>
-        <DialogContent>
-          <TextField select fullWidth label="Status" value={editData.status} onChange={(e) => setEditData({ ...editData, status: e.target.value })} sx={{ mb: 3, mt: 1 }}>
-            <MenuItem value="To Do">To Do</MenuItem>
-            <MenuItem value="In Progress">In Progress</MenuItem>
-            <MenuItem value="Done">Done</MenuItem>
-          </TextField>
-          <TextField fullWidth type="date" label="Due Date" slotProps={{ inputLabel: { shrink: true } }} value={editData.due_date} onChange={(e) => setEditData({ ...editData, due_date: e.target.value })} />
-        </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setEditModalOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleSave}>Save</Button>
-        </DialogActions>
-      </Dialog>
+      <TaskModal 
+        open={editModalOpen} 
+        onClose={() => setEditModalOpen(false)} 
+        task={selectedTask} 
+        projectId={projectId} 
+        onUpdated={fetchData} 
+      />
 
       <Dialog open={createModalOpen} onClose={() => setCreateModalOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '8px', p: 1 } }}>
         <DialogTitle sx={{ fontWeight: 900, color: '#2f4367' }}>Create New Task</DialogTitle>
@@ -527,6 +578,18 @@ export default function ProjectDetail() {
           </Button>
         </DialogActions>
       </Dialog>
+      
+      <FilterPanel 
+        open={filterPanelOpen} 
+        onClose={() => setFilterPanelOpen(false)} 
+        members={members} 
+      />
+
+      <ActivityFeed 
+        open={activityFeedOpen}
+        onClose={() => setActivityFeedOpen(false)}
+        activities={activities}
+      />
     </Box>
   );
 }

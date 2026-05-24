@@ -25,6 +25,14 @@ const getDashboard = async (req, res) => {
       WITH project_tasks AS (
         SELECT * FROM tasks WHERE project_id = $1
       ),
+      trends AS (
+        SELECT 
+          COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '7 days') as new_tasks_this_week,
+          COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '14 days' AND created_at < CURRENT_DATE - INTERVAL '7 days') as new_tasks_last_week,
+          COUNT(*) FILTER (WHERE status = 'Done' AND created_at >= CURRENT_DATE - INTERVAL '7 days') as done_this_week,
+          COUNT(*) FILTER (WHERE status = 'Done' AND created_at >= CURRENT_DATE - INTERVAL '14 days' AND created_at < CURRENT_DATE - INTERVAL '7 days') as done_last_week
+        FROM project_tasks
+      ),
       workload AS (
         SELECT 
           u.id AS user_id,
@@ -60,6 +68,7 @@ const getDashboard = async (req, res) => {
       )
       SELECT 
         json_build_object(
+          'trends', (SELECT row_to_json(t) FROM trends t),
           'workload', (SELECT COALESCE(json_agg(w), '[]'::json) FROM workload w),
           'overdueHighPriority', (SELECT COALESCE(json_agg(o), '[]'::json) FROM overdue_high o),
           'completion', (SELECT row_to_json(c) FROM completion c)
@@ -78,9 +87,22 @@ const getDashboard = async (req, res) => {
       ? parseFloat(((done_tasks / total_tasks) * 100).toFixed(1)) 
       : 0;
 
+    const trendsData = dashboard.trends || {};
+    const taskTrend = trendsData.new_tasks_last_week > 0 
+      ? Math.round(((trendsData.new_tasks_this_week - trendsData.new_tasks_last_week) / trendsData.new_tasks_last_week) * 100)
+      : (trendsData.new_tasks_this_week > 0 ? 100 : 0);
+      
+    const doneTrend = trendsData.done_last_week > 0
+      ? Math.round(((trendsData.done_this_week - trendsData.done_last_week) / trendsData.done_last_week) * 100)
+      : (trendsData.done_this_week > 0 ? 100 : 0);
+
     res.status(200).json({
       projectId: parseInt(projectId),
       isAdmin,
+      trends: {
+        taskTrend,
+        doneTrend
+      },
       workloadAnalysis: dashboard.workload,
       overdueHighPriority: dashboard.overdueHighPriority,
       completionRate: {

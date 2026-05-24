@@ -173,9 +173,9 @@ export default function Projects() {
 
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          {[project.name?.[0] || 'P', 'T', 'M'].map((letter, avatarIndex) => (
+                          {(project.members || []).slice(0, 3).map((member, avatarIndex) => (
                             <Avatar
-                              key={`${project.id}-${letter}-${avatarIndex}`}
+                              key={`${project.id}-member-${member.id}`}
                               sx={{
                                 width: 30,
                                 height: 30,
@@ -186,9 +186,25 @@ export default function Projects() {
                                 fontWeight: 900,
                               }}
                             >
-                              {letter}
+                              {member.username?.[0]?.toUpperCase() || '?'}
                             </Avatar>
                           ))}
+                          {project.members?.length > 3 && (
+                            <Avatar
+                              sx={{
+                                width: 30,
+                                height: 30,
+                                ml: -0.8,
+                                bgcolor: '#e8edf5',
+                                color: '#70809d',
+                                border: '2px solid #fff',
+                                fontSize: '0.76rem',
+                                fontWeight: 900,
+                              }}
+                            >
+                              +{project.members.length - 3}
+                            </Avatar>
+                          )}
                         </Box>
                         <Box sx={{ display: 'flex', gap: 1 }}>
                           {isAdmin && (
