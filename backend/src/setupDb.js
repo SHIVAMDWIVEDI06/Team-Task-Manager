@@ -99,6 +99,17 @@ async function setup() {
     await targetClient.query(schemaQuery);
     console.log('Full schema created or verified successfully.');
 
+    // Migrations: Add new columns if they do not exist
+    const migrationQuery = `
+      ALTER TABLE users 
+      ADD COLUMN IF NOT EXISTS theme VARCHAR(20) DEFAULT 'light',
+      ADD COLUMN IF NOT EXISTS notification_preferences JSONB DEFAULT '{"email": true, "push": true, "task_assigned": true, "status_change": true, "mentions": true}'::jsonb,
+      ADD COLUMN IF NOT EXISTS display_options JSONB DEFAULT '{"compact_view": false, "show_completed": true, "items_per_page": 20}'::jsonb;
+    `;
+    await targetClient.query(migrationQuery);
+    console.log('Migrations applied successfully.');
+
+
   } catch (err) {
     console.error('Error during schema setup:', err);
     process.exit(1);

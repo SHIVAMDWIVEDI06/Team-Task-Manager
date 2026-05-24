@@ -18,12 +18,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import toast from 'react-hot-toast';
 
-const cardSx = {
-  borderRadius: '8px',
-  border: '1px solid #e8edf5',
-  boxShadow: '0 16px 34px rgba(47, 67, 103, 0.08)',
-  bgcolor: '#fff',
-};
+// Styles managed by theme
 
 export default function Settings() {
   const [loading, setLoading] = useState(true);
@@ -186,24 +181,24 @@ export default function Settings() {
   return (
     <Box sx={{ pb: 4, maxWidth: 900, mx: 'auto' }}>
       <Box sx={{ mb: 3.5 }}>
-        <Typography variant="h4" sx={{ color: '#fff', fontWeight: 900, mb: 1 }}>
+        <Typography variant="h4" sx={{ color: 'var(--text-primary)', fontWeight: 900, mb: 1 }}>
           Settings
         </Typography>
-        <Typography sx={{ color: '#fff', opacity: 0.86, fontWeight: 700 }}>
+        <Typography sx={{ color: 'var(--text-secondary)', fontWeight: 700 }}>
           Customize your application preferences
         </Typography>
       </Box>
 
       {/* Theme Settings */}
-      <Paper sx={{ ...cardSx, p: 4, mb: 3 }}>
+      <Paper className="glass-panel premium-shadow" sx={{ p: 4, mb: 3, borderRadius: '16px' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
           <Sun size={20} color="#fb5b3f" />
-          <Typography variant="h6" sx={{ color: '#2f4367', fontWeight: 900 }}>
+          <Typography variant="h6" sx={{ color: 'var(--text-primary)', fontWeight: 900 }}>
             Theme
           </Typography>
         </Box>
         
-        <Typography sx={{ color: '#70809d', fontWeight: 600, fontSize: '0.9rem', mb: 3 }}>
+        <Typography sx={{ color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.9rem', mb: 3 }}>
           Choose your preferred color theme for the application
         </Typography>
 
@@ -277,10 +272,10 @@ export default function Settings() {
       </Paper>
 
       {/* Notification Preferences */}
-      <Paper sx={{ ...cardSx, p: 4, mb: 3 }}>
+      <Paper className="glass-panel premium-shadow" sx={{ p: 4, mb: 3, borderRadius: '16px' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
           <Bell size={20} color="#fb5b3f" />
-          <Typography variant="h6" sx={{ color: '#2f4367', fontWeight: 900 }}>
+          <Typography variant="h6" sx={{ color: 'var(--text-primary)', fontWeight: 900 }}>
             Notification Preferences
           </Typography>
         </Box>
@@ -309,10 +304,10 @@ export default function Settings() {
                 }
                 label={
                   <Box>
-                    <Typography sx={{ color: '#2f4367', fontWeight: 700, fontSize: '0.9rem' }}>
+                    <Typography sx={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '0.9rem' }}>
                       Email Notifications
                     </Typography>
-                    <Typography sx={{ color: '#70809d', fontSize: '0.8rem', fontWeight: 600 }}>
+                    <Typography sx={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>
                       Receive notifications via email
                     </Typography>
                   </Box>
@@ -332,10 +327,10 @@ export default function Settings() {
                 }
                 label={
                   <Box>
-                    <Typography sx={{ color: '#2f4367', fontWeight: 700, fontSize: '0.9rem' }}>
+                    <Typography sx={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '0.9rem' }}>
                       Push Notifications
                     </Typography>
-                    <Typography sx={{ color: '#70809d', fontSize: '0.8rem', fontWeight: 600 }}>
+                    <Typography sx={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>
                       Receive browser push notifications
                     </Typography>
                   </Box>
@@ -363,10 +358,10 @@ export default function Settings() {
                 }
                 label={
                   <Box>
-                    <Typography sx={{ color: '#2f4367', fontWeight: 700, fontSize: '0.9rem' }}>
+                    <Typography sx={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '0.9rem' }}>
                       Task Assignments
                     </Typography>
-                    <Typography sx={{ color: '#70809d', fontSize: '0.8rem', fontWeight: 600 }}>
+                    <Typography sx={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>
                       When a task is assigned to you
                     </Typography>
                   </Box>
@@ -386,10 +381,10 @@ export default function Settings() {
                 }
                 label={
                   <Box>
-                    <Typography sx={{ color: '#2f4367', fontWeight: 700, fontSize: '0.9rem' }}>
+                    <Typography sx={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: '0.9rem' }}>
                       Status Changes
                     </Typography>
-                    <Typography sx={{ color: '#70809d', fontSize: '0.8rem', fontWeight: 600 }}>
+                    <Typography sx={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 600 }}>
                       When task status is updated
                     </Typography>
                   </Box>
@@ -424,10 +419,10 @@ export default function Settings() {
       </Paper>
 
       {/* Display Options */}
-      <Paper sx={{ ...cardSx, p: 4 }}>
+      <Paper className="glass-panel premium-shadow" sx={{ p: 4, borderRadius: '16px' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
           <Eye size={20} color="#fb5b3f" />
-          <Typography variant="h6" sx={{ color: '#2f4367', fontWeight: 900 }}>
+          <Typography variant="h6" sx={{ color: 'var(--text-primary)', fontWeight: 900 }}>
             Display Options
           </Typography>
         </Box>
