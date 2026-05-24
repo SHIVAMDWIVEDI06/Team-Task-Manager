@@ -4,7 +4,7 @@
   "description": "Team Task Manager - Full Stack Application",
   "scripts": {
     "build": "npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix backend --omit=dev",
-    "start": "node backend/src/index.js",
+    "start": "node backend/src/setupDb.js && node backend/src/index.js",
     "postinstall": "npm run build"
   },
   "keywords": [],
