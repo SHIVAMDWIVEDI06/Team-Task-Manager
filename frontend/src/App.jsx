@@ -36,11 +36,10 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <ErrorBoundary>
-        <AuthProvider>
-          <NotificationProvider>
-            <SearchProvider>
-              <FilterProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          <SearchProvider>
+            <FilterProvider>
                 <Toaster 
                   position="top-right"
                   toastOptions={{
@@ -63,23 +62,22 @@ function App() {
 
                     {/* Private Routes */}
                     <Route path="/" element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
-                      <Route index element={<Dashboard />} />
-                      <Route path="projects" element={<Projects />} />
-                      <Route path="projects/:projectId" element={<ProjectDetail />} />
-                      <Route path="team" element={<Team />} />
-                      <Route path="profile" element={<Profile />} />
-                      <Route path="settings" element={<Settings />} />
+                      <Route index element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+                      <Route path="projects" element={<ErrorBoundary><Projects /></ErrorBoundary>} />
+                      <Route path="projects/:projectId" element={<ErrorBoundary><ProjectDetail /></ErrorBoundary>} />
+                      <Route path="team" element={<ErrorBoundary><Team /></ErrorBoundary>} />
+                      <Route path="profile" element={<ErrorBoundary><Profile /></ErrorBoundary>} />
+                      <Route path="settings" element={<ErrorBoundary><Settings /></ErrorBoundary>} />
                     </Route>
 
                     {/* Fallback */}
                     <Route path="*" element={<Navigate to="/" />} />
                   </Routes>
                 </Router>
-              </FilterProvider>
-            </SearchProvider>
-          </NotificationProvider>
-        </AuthProvider>
-      </ErrorBoundary>
+            </FilterProvider>
+          </SearchProvider>
+        </NotificationProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }
