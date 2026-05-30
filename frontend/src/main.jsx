@@ -4,6 +4,15 @@ import './index.css'
 import App from './App.jsx'
 import axios from 'axios'
 
+// Restore saved theme before React mounts (prevents flash of wrong theme)
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'dark') {
+  document.documentElement.setAttribute('data-theme', 'dark');
+} else if (savedTheme === 'auto') {
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (prefersDark) document.documentElement.setAttribute('data-theme', 'dark');
+}
+
 axios.interceptors.response.use(
   (response) => response,
   (error) => {

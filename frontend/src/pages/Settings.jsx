@@ -114,23 +114,22 @@ export default function Settings() {
   };
 
   const applyTheme = (theme) => {
-    // Apply theme to document root
     const root = document.documentElement;
-    
     if (theme === 'dark') {
-      root.style.setProperty('--bg-color', '#1a1a2e');
-      root.style.setProperty('--text-color', '#ffffff');
-      root.style.setProperty('--card-bg', '#16213e');
-      document.body.style.backgroundColor = '#1a1a2e';
+      root.setAttribute('data-theme', 'dark');
+      localStorage.setItem('theme', 'dark');
     } else if (theme === 'light') {
-      root.style.setProperty('--bg-color', '#f5f7fb');
-      root.style.setProperty('--text-color', '#2f4367');
-      root.style.setProperty('--card-bg', '#ffffff');
-      document.body.style.backgroundColor = '#f5f7fb';
+      root.removeAttribute('data-theme');
+      localStorage.setItem('theme', 'light');
     } else {
       // Auto mode - detect system preference
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      applyTheme(prefersDark ? 'dark' : 'light');
+      if (prefersDark) {
+        root.setAttribute('data-theme', 'dark');
+      } else {
+        root.removeAttribute('data-theme');
+      }
+      localStorage.setItem('theme', 'auto');
     }
   };
 
