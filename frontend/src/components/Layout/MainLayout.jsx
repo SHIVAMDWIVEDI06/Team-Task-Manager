@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
+import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 import {
   Avatar,
   Box,
@@ -68,6 +70,38 @@ export default function MainLayout() {
   const [anchorEl, setAnchorEl] = useState(null);
   const meta = getPageMeta(location.pathname);
   const sidebarOpen = isMobile || open;
+
+  useEffect(() => {
+    const fetchAndApplyTheme = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const res = await axios.get(`${API_BASE_URL}/settings`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const themeValue = res.data.theme || 'light';
+        const root = document.documentElement;
+        if (themeValue === 'dark') {
+          root.setAttribute('data-theme', 'dark');
+          localStorage.setItem('theme', 'dark');
+        } else if (themeValue === 'light') {
+          root.removeAttribute('data-theme');
+          localStorage.setItem('theme', 'light');
+        } else {
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (prefersDark) {
+            root.setAttribute('data-theme', 'dark');
+          } else {
+            root.removeAttribute('data-theme');
+          }
+          localStorage.setItem('theme', 'auto');
+        }
+      } catch (err) {
+        console.error('Failed to load theme settings on startup', err);
+      }
+    };
+    fetchAndApplyTheme();
+  }, []);
 
   const handleLogout = () => {
     logout();

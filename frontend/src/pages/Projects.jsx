@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Avatar,
+  AvatarGroup,
   Box,
   Button,
   Card,
