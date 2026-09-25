@@ -1,0 +1,267 @@
+/* ---------- Project settings ---------- */
+.ps-icon-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-4);
+}
+.ps-icon-preview {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 22px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), var(--shadow-sm);
+}
+.ps-icon-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 260px;
+}
+.ps-icon-choice {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  color: var(--fg-secondary);
+  border: 1px solid transparent;
+  transition: background var(--dur-fast), border-color var(--dur-fast);
+}
+.ps-icon-choice:hover {
+  background: var(--surface-hover);
+}
+.ps-icon-choice.is-active {
+  background: var(--brand-soft);
+  border-color: var(--brand);
+  color: var(--fg);
+}
+
+/* workflow */
+.ps-status-list {
+  display: flex;
+  flex-direction: column;
+}
+.ps-status-row {
+  display: grid;
+  grid-template-columns: 22px 20px minmax(0, 1fr) 150px 64px 64px;
+  gap: var(--s-3);
+  align-items: center;
+  padding: 8px 12px 8px 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface);
+  transition: background var(--dur-fast), box-shadow var(--dur-fast);
+}
+.ps-status-row:last-child {
+  border-bottom: 0;
+}
+.ps-status-row.is-readonly {
+  grid-template-columns: 20px minmax(0, 1fr) 150px 64px;
+}
+.ps-status-row.is-over {
+  box-shadow: inset 0 2px 0 var(--brand);
+}
+.ps-status-row.is-over-after {
+  box-shadow: inset 0 -2px 0 var(--brand);
+}
+.ps-status-row.is-overlay {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  transform: rotate(-0.5deg);
+}
+.ps-grip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 28px;
+  border-radius: var(--r-sm);
+  color: var(--fg-faint);
+  cursor: grab;
+  touch-action: none;
+}
+.ps-grip:hover {
+  background: var(--surface-hover);
+  color: var(--fg-muted);
+}
+body.dragging .ps-grip {
+  cursor: grabbing;
+}
+.ps-status-name .input {
+  font-weight: 500;
+}
+.ps-status-name .input-wrap {
+  width: 100%;
+}
+.ps-inline .input-wrap {
+  background: transparent;
+}
+.ps-inline .input {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+.ps-inline .input:hover {
+  background: var(--surface-hover);
+}
+.ps-inline .input:focus {
+  background: var(--surface);
+  border-color: var(--brand);
+  box-shadow: var(--shadow-focus);
+}
+.ps-count {
+  font-size: var(--fs-sm);
+  color: var(--fg-muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ps-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.ps-swatch:hover {
+  transform: scale(1.08);
+}
+.ps-swatch.is-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+.ps-color-popover {
+  padding: 10px;
+}
+.ps-add-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 12px 20px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+  flex-wrap: wrap;
+}
+.ps-add-row .input-wrap {
+  flex: 1 1 200px;
+}
+.ps-category-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 10px 20px;
+  font-size: var(--fs-sm);
+  color: var(--fg-muted);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+}
+.ps-category-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* labels */
+.ps-label-row {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 90px 36px;
+  gap: var(--s-3);
+  align-items: center;
+  padding: 6px 12px 6px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.ps-label-row.is-readonly {
+  grid-template-columns: 22px minmax(0, 1fr) 90px;
+}
+.ps-label-row:last-child {
+  border-bottom: 0;
+}
+
+/* members */
+.ps-member-list {
+  display: flex;
+  flex-direction: column;
+}
+.ps-member-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+}
+.ps-member-row:last-child {
+  border-bottom: 0;
+}
+.ps-member-row:hover {
+  background: var(--surface-hover);
+}
+.ps-member-row.is-locked {
+  cursor: default;
+}
+.ps-member-row .checkbox {
+  pointer-events: none;
+}
+.ps-member-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.ps-member-name {
+  font-weight: 500;
+  font-size: var(--fs-md);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ps-member-email {
+  font-size: var(--fs-sm);
+  color: var(--fg-muted);
+}
+.ps-visibility-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+}
+.ps-visibility-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--surface-3);
+  color: var(--fg-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 860px) {
+  .ps-status-row {
+    grid-template-columns: 22px 20px minmax(0, 1fr) 64px;
+    grid-template-areas: 'grip icon name del' '. . cat count';
+  }
+  .ps-status-row > :nth-child(1) { grid-area: grip; }
+  .ps-status-row > :nth-child(2) { grid-area: icon; }
+  .ps-status-row > :nth-child(3) { grid-area: name; }
+  .ps-status-row > :nth-child(4) { grid-area: cat; }
+  .ps-status-row > :nth-child(5) { grid-area: count; text-align: left; }
+  .ps-status-row > :nth-child(6) { grid-area: del; }
+  .ps-status-row.is-readonly {
+    grid-template-columns: 20px minmax(0, 1fr);
+    grid-template-areas: 'icon name' '. cat' '. count';
+  }
+  .ps-status-row.is-readonly > :nth-child(1) { grid-area: icon; }
+  .ps-status-row.is-readonly > :nth-child(2) { grid-area: name; }
+  .ps-status-row.is-readonly > :nth-child(3) { grid-area: cat; }
+  .ps-status-row.is-readonly > :nth-child(4) { grid-area: count; text-align: left; }
+  .ps-icon-row {
+    flex-direction: column;
+  }
+}

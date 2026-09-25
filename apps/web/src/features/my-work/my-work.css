@@ -1,0 +1,177 @@
+/* ---------- My work ---------- */
+.my-work {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: var(--s-10);
+}
+.my-work-header {
+  margin-bottom: var(--s-4);
+  align-items: flex-end;
+}
+.my-work-header .page-title {
+  font-size: var(--fs-2xl);
+}
+.my-work-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+  flex-wrap: wrap;
+}
+.my-work-tabs {
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.my-work-tabs::-webkit-scrollbar {
+  display: none;
+}
+.my-work-tabs .tab {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.my-work-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.my-work-controls .switch-row {
+  gap: 8px;
+}
+.my-work-controls .switch-label {
+  font-size: var(--fs-md);
+  color: var(--fg-secondary);
+  white-space: nowrap;
+}
+.my-work-card {
+  padding: 6px;
+  min-height: 200px;
+}
+.my-work-card > .empty {
+  padding: 56px 16px;
+}
+.my-work-group + .my-work-group {
+  margin-top: 6px;
+}
+.my-work-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px 6px;
+  border-radius: var(--r-md);
+  text-align: left;
+  color: var(--fg);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  transition: background var(--dur-fast);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+}
+.my-work-group-head:hover {
+  background: var(--surface-hover);
+}
+.my-work-group-head.is-skeleton {
+  pointer-events: none;
+  min-height: 34px;
+}
+.my-work-group-chevron {
+  color: var(--fg-faint);
+  flex-shrink: 0;
+}
+.my-work-group-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  font-size: 10px;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.my-work-group-glyph {
+  color: var(--fg-muted);
+  flex-shrink: 0;
+}
+.my-work-group-glyph.is-overdue {
+  color: var(--danger);
+}
+.my-work-group-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.my-work-group-key {
+  font-size: var(--fs-xs);
+  color: var(--fg-faint);
+  font-weight: 500;
+}
+.my-work-group-count {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--fg-muted);
+  background: var(--surface-3);
+  border-radius: 999px;
+  padding: 1px 7px;
+  min-width: 20px;
+  text-align: center;
+}
+.my-work-group-overdue {
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--danger);
+}
+.my-work-rows {
+  display: flex;
+  flex-direction: column;
+  padding: 0 0 4px;
+}
+.my-work-rows .task-row {
+  padding-left: 30px;
+}
+.my-work-skeleton {
+  display: flex;
+  flex-direction: column;
+}
+.my-work-hint {
+  margin-top: var(--s-3);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: center;
+}
+
+@media (max-width: 720px) {
+  .my-work-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .my-work-header .page-title {
+    font-size: var(--fs-xl);
+  }
+  .my-work-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: var(--s-2);
+  }
+  .my-work-tabs,
+  .my-work-controls {
+    width: 100%;
+  }
+  .my-work-controls {
+    justify-content: space-between;
+  }
+  .my-work-rows .task-row {
+    padding-left: 12px;
+  }
+  .my-work-hint {
+    display: none;
+  }
+}

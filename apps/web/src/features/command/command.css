@@ -1,0 +1,128 @@
+/* ---------- Command palette ---------- */
+.dialog.cmdk {
+  max-width: 640px;
+  overflow: hidden;
+  border-radius: var(--r-xl);
+}
+.cmdk .dialog-body {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.cmdk-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.cmdk-picker {
+  min-width: 0;
+}
+.cmdk-picker .picker-search {
+  padding: 12px 16px;
+  gap: 10px;
+}
+.cmdk-picker .picker-search > .muted {
+  color: var(--fg-muted);
+}
+.cmdk-picker .picker-input {
+  font-size: var(--fs-lg);
+  font-weight: 450;
+}
+.cmdk-picker .picker-input::placeholder {
+  color: var(--fg-faint);
+}
+.cmdk-panel.is-actions .picker-search {
+  background: var(--brand-soft);
+}
+.cmdk-picker .picker-list {
+  padding: 6px 8px 8px;
+  min-height: 120px;
+}
+.cmdk-picker .picker-section + .picker-section {
+  margin-top: 4px;
+}
+.cmdk-picker .picker-section-title {
+  padding: 8px 8px 4px;
+}
+.cmdk-picker .picker-item {
+  min-height: 36px;
+  padding: 6px 10px;
+  gap: 10px;
+}
+.cmdk-picker .picker-item.is-active {
+  background: var(--surface-active);
+}
+.cmdk-picker .picker-icon {
+  width: 20px;
+  justify-content: center;
+}
+.cmdk-picker .picker-item.is-active .picker-icon {
+  color: var(--fg);
+}
+.cmdk-indent {
+  margin-left: 14px;
+}
+.cmdk-project-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  font-size: 10px;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.cmdk-task {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cmdk-task .task-key {
+  flex-shrink: 0;
+  min-width: 48px;
+}
+.cmdk-task-title {
+  font-weight: 500;
+}
+.cmdk-task-title.is-done {
+  color: var(--fg-muted);
+  text-decoration: line-through;
+}
+.cmdk-task-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  color: var(--fg-muted);
+}
+.cmdk-kbds {
+  display: inline-flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.cmdk-picker .picker-footer {
+  padding: 8px 14px;
+  background: var(--surface-2);
+}
+.cmdk-footer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  font-size: var(--fs-xs);
+  color: var(--fg-muted);
+}
+.cmdk-picker .picker-empty {
+  padding: 28px 16px;
+}
+@media (max-width: 720px) {
+  .cmdk-task-right .project-badge {
+    display: none;
+  }
+  .cmdk-footer > :not(.grow):nth-child(n + 3) {
+    display: none;
+  }
+}
