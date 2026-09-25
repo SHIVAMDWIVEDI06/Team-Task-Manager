@@ -163,7 +163,7 @@ export function MenuButton({ items, label = 'More', icon = 'more-h', size = 'sm'
   const ref = useRef<HTMLButtonElement | null>(null);
   return (
     <>
-      <Button ref={ref} size={size} variant={variant} icon={children ? icon : undefined} iconOnly={!children} title={label} aria-label={label} aria-haspopup="menu" aria-expanded={open} className={className} onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} iconRight={children ? 'chevron-down' : undefined}>
+      <Button ref={ref} size={size} variant={variant} icon={icon} iconOnly={!children} title={label} aria-label={label} aria-haspopup="menu" aria-expanded={open} className={className} onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }} iconRight={children ? 'chevron-down' : undefined}>
         {children ?? label}
       </Button>
       <Menu open={open} onClose={() => setOpen(false)} anchorRef={ref} items={items} align={align} header={header} />

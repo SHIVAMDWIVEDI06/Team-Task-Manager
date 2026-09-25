@@ -108,6 +108,11 @@
 .btn-link:hover:not(:disabled) {
   text-decoration: underline;
 }
+.btn-icon-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
 .btn-label {
   display: inline-flex;
   align-items: center;

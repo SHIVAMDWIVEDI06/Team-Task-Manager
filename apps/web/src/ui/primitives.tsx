@@ -37,7 +37,7 @@ export function Button({ variant = 'secondary', size = 'md', icon, iconRight, lo
     <button type={type} className={cx('btn', `btn-${variant}`, `btn-${size}`, iconOnly && 'btn-icon', active && 'is-active', loading && 'is-loading', className)} disabled={disabled || loading} aria-busy={loading || undefined} {...rest}>
       {loading ? <Spinner size={iconSize} /> : icon ? <Icon name={icon} size={iconSize} /> : null}
       {children !== undefined && !iconOnly ? <span className="btn-label">{children}</span> : null}
-      {iconOnly && children ? <span className="sr-only">{children}</span> : null}
+      {iconOnly && children !== undefined ? (typeof children === 'string' ? <span className="sr-only">{children}</span> : <span className="btn-icon-content">{children}</span>) : null}
       {iconRight ? <Icon name={iconRight} size={iconSize} /> : null}
     </button>
   );
