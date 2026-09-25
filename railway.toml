@@ -1,8 +1,9 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix backend"
+buildCommand = "npm ci && npm run build"
 
 [deploy]
-startCommand = "node backend/src/index.js"
+startCommand = "npm start"
+healthcheckPath = "/api/health"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
