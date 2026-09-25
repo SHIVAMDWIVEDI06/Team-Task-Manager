@@ -10,8 +10,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const watch = process.argv.includes('--watch');
 const isProd = !watch && process.env.NODE_ENV !== 'development';
 
-const webOut = path.join(root, 'dist', 'web');
-const apiOut = path.join(root, 'dist', 'api');
+const outRoot = path.resolve(root, process.env.OUT_DIR || 'dist');
+const webOut = path.join(outRoot, 'web');
+const apiOut = path.join(outRoot, 'api');
 
 async function writeHtml(assetNames) {
   const template = await readFile(path.join(root, 'apps/web/index.html'), 'utf8');
@@ -77,7 +78,7 @@ const apiOptions = {
   logLevel: 'warning',
 };
 
-await rm(path.join(root, 'dist'), { recursive: true, force: true });
+await rm(outRoot, { recursive: true, force: true });
 await mkdir(path.join(webOut, 'assets'), { recursive: true });
 await mkdir(apiOut, { recursive: true });
 await cp(path.join(root, 'apps/web/public'), webOut, { recursive: true });
@@ -90,6 +91,6 @@ if (watch) {
   await esbuild.build(webOptions);
   await esbuild.build(apiOptions);
   const stat = await readFile(path.join(webOut, 'index.html'));
-  console.log(`[api] built dist/api/server.js`);
+  console.log(`[api] built ${path.relative(root, apiOut)}/server.js`);
   console.log(`[done] index.html ${createHash('sha1').update(stat).digest('hex').slice(0, 8)}`);
 }
