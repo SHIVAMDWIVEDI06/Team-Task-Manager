@@ -176,8 +176,15 @@ authRouter.post('/change-password', async (ctx) => {
   const user = ctx.requireUser();
   const body = await ctx.json(v.object({ currentPassword: v.string({ min: 1, trim: false }), newPassword: v.string({ min: LIMITS.passwordMin, max: 200, trim: false }) }));
   const row = db.one<{ password_hash: string }>('SELECT password_hash FROM users WHERE id = ?', [user.id]);
-  if (!row || !(await verifyPassword(body.currentPassword, row.password_hash))) throw errors.badRequest('Current password is incorrect');
-  db.run('UPDATE users SET password_hash = ? WHERE id = ?', [await hashPassword(body.newPassword), user.id]);
+  if (!row || !(await verifyPassword(body.currentPassword, row.password_hash))) throw errors.validation([{ path: 'currentPassword', message: 'Current password is incorrect' }]);
+  const hash = await hashPassword(body.newPassword);
+  const current = ctx.cookies[REFRESH_COOKIE] ? sha256(ctx.cookies[REFRESH_COOKIE]) : null;
+  db.tx(() => {
+    db.run('UPDATE users SET password_hash = ? WHERE id = ?', [hash, user.id]);
+    // Sign out every other device; keep this session.
+    if (current) db.run('DELETE FROM sessions WHERE user_id = ? AND token_hash != ?', [user.id, current]);
+    else db.run('DELETE FROM sessions WHERE user_id = ?', [user.id]);
+  });
   return noContent();
 });
 

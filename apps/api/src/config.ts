@@ -41,6 +41,7 @@ fs.mkdirSync(path.join(dataDir, 'uploads'), { recursive: true });
 export const config = {
   isProd,
   port: Number(env.PORT || 3000),
+  trustProxy: env.TRUST_PROXY ? env.TRUST_PROXY === 'true' : isProd,
   host: env.HOST || '0.0.0.0',
   appUrl: (env.APP_URL || `http://localhost:${env.PORT || 3000}`).replace(/\/$/, ''),
   jwtSecret: secret(),

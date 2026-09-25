@@ -114,9 +114,9 @@ export function MembersSettings({ onInvite }: { onInvite: () => void }) {
 }
 
 export function PendingInvites({ onInvite, compact }: { onInvite?: () => void; compact?: boolean }) {
-  const { workspace, member } = useWorkspace();
+  const { workspace, member, isAdmin } = useWorkspace();
   const confirm = useConfirm();
-  const q = useInvites(workspace.id);
+  const q = useInvites(isAdmin ? workspace.id : null);
   const invites = q.data ?? [];
 
   const revoke = async (inv: Invite) => {

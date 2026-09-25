@@ -13,6 +13,12 @@ import { PROJECT_SELECT } from './projects.ts';
 import { v, todayISO, addDays } from '../../../../packages/shared/src/index.ts';
 import type { DashboardData, Priority, StatusCategory } from '../../../../packages/shared/src/types.ts';
 
+function clampInt(raw: string | null, fallback: number, max: number): number {
+  const n = Number(raw);
+  if (!raw || !Number.isFinite(n) || n < 1) return fallback;
+  return Math.min(max, Math.floor(n));
+}
+
 const NOTIF_SELECT = `SELECT n.*, u.id AS actor_id, u.name AS actor_name, u.avatar_url AS actor_avatar FROM notifications n LEFT JOIN users u ON u.id = n.actor_id`;
 
 export const feedRouter = new Router('/api');
@@ -21,7 +27,7 @@ export const feedRouter = new Router('/api');
 feedRouter.get('/notifications', (ctx) => {
   const user = ctx.requireUser();
   const unreadOnly = ctx.query.get('unread') === 'true';
-  const limit = Math.min(200, Number(ctx.query.get('limit') || 50));
+  const limit = clampInt(ctx.query.get('limit'), 50, 200);
   const rows = db.all(`${NOTIF_SELECT} WHERE n.user_id = ? ${unreadOnly ? 'AND n.read_at IS NULL' : ''} ORDER BY n.created_at DESC LIMIT ?`, [user.id, limit]);
   const unread = db.one<{ c: number }>('SELECT COUNT(*) AS c FROM notifications WHERE user_id = ? AND read_at IS NULL', [user.id])!.c;
   return { items: rows.map(notificationFromRow), unread };
@@ -59,7 +65,7 @@ feedRouter.delete('/notifications', (ctx) => {
 feedRouter.get('/workspaces/:id/activity', (ctx) => {
   const user = ctx.requireUser();
   requireMember(user.id, ctx.params.id);
-  const limit = Math.min(200, Number(ctx.query.get('limit') || 50));
+  const limit = clampInt(ctx.query.get('limit'), 50, 200);
   const before = ctx.query.get('before');
   const projectId = ctx.query.get('project');
   const rows = db.all(
@@ -74,7 +80,7 @@ feedRouter.get('/workspaces/:id/activity', (ctx) => {
 feedRouter.get('/projects/:id/activity', (ctx) => {
   const user = ctx.requireUser();
   const { project } = requireProject(user.id, ctx.params.id);
-  const limit = Math.min(200, Number(ctx.query.get('limit') || 50));
+  const limit = clampInt(ctx.query.get('limit'), 50, 200);
   return db.all(`${ACTIVITY_SELECT} WHERE a.project_id = ? ORDER BY a.created_at DESC LIMIT ?`, [project.id, limit]).map(activityFromRow);
 });
 
@@ -124,8 +130,8 @@ feedRouter.get('/workspaces/:id/dashboard', (ctx) => {
     overdue: count(`AND t.assignee_id = ? AND ${open} AND t.due_date < ?`, [user.id, today]),
     dueToday: count(`AND t.assignee_id = ? AND ${open} AND t.due_date = ?`, [user.id, today]),
     dueThisWeek: count(`AND t.assignee_id = ? AND ${open} AND t.due_date >= ? AND t.due_date <= ?`, [user.id, today, weekEnd]),
-    completedThisWeek: count(`AND t.completed_at >= ?`, [weekStart]),
-    createdThisWeek: count(`AND t.created_at >= ?`, [weekStart]),
+    completedThisWeek: count(`AND t.parent_id IS NULL AND t.completed_at >= ?`, [weekStart]),
+    createdThisWeek: count(`AND t.parent_id IS NULL AND t.created_at >= ?`, [weekStart]),
   };
   const myTasks = db.all(`${TASK_SELECT} WHERE p.workspace_id = ? AND t.assignee_id = ? AND t.archived_at IS NULL AND p.state = 'active' AND ${open} ORDER BY CASE WHEN t.due_date IS NULL THEN 1 ELSE 0 END, t.due_date, t.priority DESC LIMIT 12`, [wsId, user.id]).map(taskFromRow);
   const overdue = db.all(`${TASK_SELECT} WHERE p.workspace_id = ? AND t.archived_at IS NULL AND p.state = 'active' AND ${open} AND t.due_date < ? AND ${VISIBLE_PROJECTS_SQL} ORDER BY t.due_date LIMIT 12`, [wsId, today, user.id, user.id]).map(taskFromRow);
@@ -136,8 +142,8 @@ feedRouter.get('/workspaces/:id/dashboard', (ctx) => {
   const throughput: DashboardData['throughput'] = [];
   for (let i = 13; i >= 0; i--) {
     const date = addDays(today, -i);
-    const completed = count(`AND substr(t.completed_at, 1, 10) = ?`, [date]);
-    const createdN = count(`AND substr(t.created_at, 1, 10) = ?`, [date]);
+    const completed = count(`AND t.parent_id IS NULL AND substr(t.completed_at, 1, 10) = ?`, [date]);
+    const createdN = count(`AND t.parent_id IS NULL AND substr(t.created_at, 1, 10) = ?`, [date]);
     throughput.push({ date, completed, created: createdN });
   }
   const overdueByProject = db.all<{ project_id: string; c: number }>(`SELECT t.project_id, COUNT(*) AS c FROM tasks t JOIN task_statuses s ON s.id = t.status_id JOIN projects p ON p.id = t.project_id WHERE p.workspace_id = ? AND t.archived_at IS NULL AND ${open} AND t.due_date < ? GROUP BY t.project_id`, [wsId, today]);
@@ -185,6 +191,7 @@ feedRouter.get('/events', (ctx) => {
 feedRouter.post('/presence', async (ctx) => {
   const user = ctx.requireUser();
   const body = await ctx.json(v.object({ workspaceId: v.string(), location: v.string({ max: 200 }).nullable().default(null) }));
+  requireMember(user.id, body.workspaceId);
   realtime.setLocation(user.id, body.workspaceId, body.location);
   db.run('UPDATE users SET last_active_at = ? WHERE id = ?', [now(), user.id]);
   return noContent();

@@ -1,10 +1,12 @@
 import http from 'node:http';
 import { config } from './config.ts';
 import { db } from './db/index.ts';
-import { createApp, Router, type Middleware } from './lib/http.ts';
+import { createApp, Router, Ctx, type Middleware } from './lib/http.ts';
 import { verifyJwt } from './lib/crypto.ts';
 import { errors } from './lib/errors.ts';
 import { RateLimiter } from './lib/ratelimit.ts';
+import { realtime } from './lib/realtime.ts';
+import { canSeeProject } from './lib/access.ts';
 import { serveSpa } from './lib/static.ts';
 import { authRouter } from './modules/auth.ts';
 import { usersRouter, touchLastActive } from './modules/users.ts';
@@ -17,6 +19,22 @@ import { feedRouter, sendDueSoonReminders } from './modules/feed.ts';
 import { seedDemo } from './db/seed.ts';
 
 const apiLimiter = new RateLimiter(300, 600);
+Ctx.trustProxy = config.trustProxy;
+realtime.setVisibilityCheck(canSeeProject);
+
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline' https://rsms.me",
+  "font-src 'self' https://rsms.me data:",
+  "img-src 'self' data: blob: https:",
+  "connect-src 'self'",
+  "media-src 'self' blob:",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ');
 const lastActive = new Map<string, number>();
 
 const securityHeaders: Middleware = async (ctx, next) => {
@@ -24,6 +42,7 @@ const securityHeaders: Middleware = async (ctx, next) => {
   ctx.set('X-Frame-Options', 'DENY');
   ctx.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   ctx.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  if (!ctx.path.startsWith('/api/')) ctx.set('Content-Security-Policy', CSP);
   if (config.isProd && config.appUrl.startsWith('https')) ctx.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   await next();
 };

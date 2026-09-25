@@ -7,7 +7,7 @@ import { errors } from '../lib/errors.ts';
 import { newId } from '../lib/crypto.ts';
 import { config } from '../config.ts';
 import { verifyJwt } from '../lib/crypto.ts';
-import { requireTask } from '../lib/access.ts';
+import { requireTask, filterWorkspaceMembers } from '../lib/access.ts';
 import { commentFromRow, attachmentFromRow, timeEntryFromRow, activityFromRow } from '../lib/serialize.ts';
 import { logActivity, notify, extractMentions, taskAudience, taskLink, ACTIVITY_SELECT } from '../lib/services.ts';
 import { realtime } from '../lib/realtime.ts';
@@ -46,7 +46,7 @@ collabRouter.post('/tasks/:id/comments', async (ctx) => {
   realtime.publish(wsId, { type: 'task.updated', projectId: task.project_id, task: t });
   logActivity({ workspaceId: wsId, projectId: task.project_id, taskId: task.id, actorId: user.id, type: 'task.commented', data: { key: t.key, title: t.title, excerpt: body.body.slice(0, 140) } });
   const link = taskLink(slugOf(wsId), access.project.key, task.number);
-  const mentioned = new Set(extractMentions(body.body));
+  const mentioned = new Set(filterWorkspaceMembers(wsId, extractMentions(body.body)));
   for (const uid of mentioned) {
     notify({ userId: uid, type: 'mentioned', title: `${comment.author.name} mentioned you in ${t.key}`, body: body.body.slice(0, 200), link, actorId: user.id, email: { subject: `[${t.key}] ${comment.author.name} mentioned you`, lines: [`${comment.author.name} mentioned you in a comment on "${t.title}":`, body.body.slice(0, 500)] } });
   }
@@ -99,7 +99,8 @@ collabRouter.post('/tasks/:id/attachments', async (ctx) => {
     const ext = path.extname(f.filename).toLowerCase();
     const storageKey = `${id}${SAFE_EXT.test(f.filename) ? ext : '.bin'}`;
     fs.writeFileSync(path.join(config.uploadsDir, storageKey), f.data);
-    db.run('INSERT INTO attachments (id, task_id, uploader_id, filename, mime, size, storage_key, created_at) VALUES (?,?,?,?,?,?,?,?)', [id, task.id, user.id, f.filename, f.mime, f.data.length, storageKey, now()]);
+    const safeMime = /^[a-z0-9.+-]+\/[a-z0-9.+-]+$/i.test(f.mime) ? f.mime.toLowerCase().slice(0, 100) : 'application/octet-stream';
+    db.run('INSERT INTO attachments (id, task_id, uploader_id, filename, mime, size, storage_key, created_at) VALUES (?,?,?,?,?,?,?,?)', [id, task.id, user.id, f.filename, safeMime, f.data.length, storageKey, now()]);
     out.push(attachmentFromRow(db.one(`SELECT at.*, u.id AS uploader_id, u.name AS uploader_name, u.avatar_url AS uploader_avatar_url FROM attachments at LEFT JOIN users u ON u.id = at.uploader_id WHERE at.id = ?`, [id])!));
   }
   db.run('UPDATE tasks SET updated_at = ? WHERE id = ?', [now(), task.id]);
@@ -121,9 +122,16 @@ collabRouter.get('/attachments/:id/:filename', (ctx) => {
   const row = db.one<{ task_id: string; storage_key: string; filename: string; mime: string }>('SELECT task_id, storage_key, filename, mime FROM attachments WHERE id = ?', [ctx.params.id]);
   if (!row) throw errors.notFound('Attachment');
   requireTask(user.id, row.task_id);
-  const inline = /^(image\/|application\/pdf|text\/plain|video\/|audio\/)/.test(row.mime) && ctx.query.get('download') !== '1';
+  // Never trust the client-supplied MIME type: derive it from the stored extension, and only render
+  // a known-safe allowlist inline (no SVG/HTML — they can carry scripts). Everything else downloads.
+  const INLINE_TYPES: Record<string, string> = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp', '.pdf': 'application/pdf', '.txt': 'text/plain; charset=utf-8', '.mp4': 'video/mp4', '.webm': 'video/webm', '.mp3': 'audio/mpeg', '.wav': 'audio/wav' };
+  const ext = path.extname(row.storage_key).toLowerCase();
+  const inlineType = INLINE_TYPES[ext];
+  const inline = Boolean(inlineType) && ctx.query.get('download') !== '1';
+  ctx.set('Content-Security-Policy', "default-src 'none'; sandbox");
+  ctx.set('X-Content-Type-Options', 'nosniff');
   const file = path.join(config.uploadsDir, row.storage_key);
-  if (!sendFile(ctx, file, { cache: 'private, max-age=86400', download: inline ? undefined : row.filename, contentType: inline ? row.mime : 'application/octet-stream' })) throw errors.notFound('File');
+  if (!sendFile(ctx, file, { cache: 'private, max-age=86400', download: inline ? undefined : row.filename, contentType: inline ? inlineType : 'application/octet-stream' })) throw errors.notFound('File');
 });
 
 collabRouter.delete('/attachments/:id', (ctx) => {

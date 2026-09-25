@@ -153,7 +153,10 @@ function CreateTaskDialog({ defaults, onClose }: { defaults: CreateTaskDefaults;
   // Keep a valid status when the project (and therefore its workflow) changes.
   useEffect(() => {
     if (!statuses.length) return;
-    if (!statusId || !statuses.some((s) => s.id === statusId)) setStatusId((defaults.statusId && statuses.some((s) => s.id === defaults.statusId) ? defaults.statusId : statuses[0].id) ?? null);
+    if (!statusId || !statuses.some((s) => s.id === statusId)) {
+      const preferred = statuses.find((s) => s.category === 'todo') ?? statuses.find((s) => s.category === 'backlog') ?? statuses[0];
+      setStatusId((defaults.statusId && statuses.some((s) => s.id === defaults.statusId) ? defaults.statusId : preferred.id) ?? null);
+    }
   }, [statuses, statusId, defaults.statusId]);
   // Labels belong to a project: drop them when switching.
   const prevProject = useRef(projectId);

@@ -36,6 +36,7 @@ export function createProjectInternal(input: {
   const key = input.key.toUpperCase();
   if (!KEY_RE.test(key)) throw errors.badRequest('Project key must be 2–6 uppercase letters/digits, starting with a letter');
   if (db.one('SELECT 1 FROM projects WHERE workspace_id = ? AND key = ?', [input.workspaceId, key])) throw errors.conflict(`Project key ${key} is already used in this workspace`);
+  if (input.leadId && !db.one('SELECT 1 FROM workspace_members WHERE workspace_id = ? AND user_id = ?', [input.workspaceId, input.leadId])) throw errors.badRequest('Lead must be a workspace member');
   const statusIds: Record<string, string> = {};
   db.tx(() => {
     db.run(
@@ -166,6 +167,7 @@ projectsRouter.patch('/projects/:id', async (ctx) => {
       targetDate: v.string({ date: true }).nullable().optional(),
     }),
   );
+  if (body.leadId && !db.one('SELECT 1 FROM workspace_members WHERE workspace_id = ? AND user_id = ?', [project.workspace_id, body.leadId])) throw errors.badRequest('Lead must be a workspace member');
   const map: Record<string, string> = { name: 'name', key: 'key', description: 'description', color: 'color', icon: 'icon', visibility: 'visibility', state: 'state', leadId: 'lead_id', startDate: 'start_date', targetDate: 'target_date' };
   const sets: string[] = [];
   const params: (string | null)[] = [];
@@ -278,6 +280,7 @@ projectsRouter.delete('/projects/:id/statuses/:statusId', async (ctx) => {
   const user = ctx.requireUser();
   const { project } = requireProject(user.id, ctx.params.id, 'manage');
   const moveTo = ctx.query.get('moveTo');
+  if (moveTo === ctx.params.statusId) throw errors.badRequest('Choose a different status to move tasks to');
   const count = db.one<{ c: number }>('SELECT COUNT(*) AS c FROM task_statuses WHERE project_id = ?', [project.id])!;
   if (count.c <= 1) throw errors.badRequest('A project needs at least one status');
   const target = moveTo ? db.one<{ id: string; category: StatusCategory }>('SELECT id, category FROM task_statuses WHERE id = ? AND project_id = ?', [moveTo, project.id]) : db.one<{ id: string; category: StatusCategory }>('SELECT id, category FROM task_statuses WHERE project_id = ? AND id != ? ORDER BY position LIMIT 1', [project.id, ctx.params.statusId]);

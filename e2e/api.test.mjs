@@ -50,7 +50,8 @@ function client() {
     if (token) headers.authorization = `Bearer ${token}`;
     if (cookie) headers.cookie = cookie;
     let payload = body;
-    if (body && !(body instanceof FormData)) {
+    if (opts.raw !== undefined) payload = opts.raw;
+    else if (body && !(body instanceof FormData)) {
       headers['content-type'] = 'application/json';
       payload = JSON.stringify(body);
     }
@@ -401,6 +402,106 @@ await test('password reset flow', async () => {
   assert.equal(login.status, 200);
 });
 
+await test('private project events are not broadcast to non-members (SSE)', async () => {
+  // create a private project bob is NOT a member of, then watch bob's stream while alice creates a task in it
+  const p = await alice.post(`/api/workspaces/${ws.id}/projects`, { name: 'Hidden', key: 'HID', visibility: 'private' });
+  assert.equal(p.status, 201);
+  const bobToken = (await bob.post('/api/auth/refresh')).data.accessToken;
+  bob.setToken(bobToken);
+  const ctrl = new AbortController();
+  const res = await fetch(`${BASE}/api/events?workspace=${ws.id}&token=${bobToken}`, { signal: ctrl.signal });
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+  await alice.post(`/api/projects/${p.data.id}/tasks`, { title: 'SECRET TASK TITLE' });
+  await alice.post(`/api/projects/${project.id}/tasks`, { title: 'public marker task' });
+  const deadline = Date.now() + 2500;
+  let sawMarker = false;
+  while (Date.now() < deadline && !sawMarker) {
+    const { value } = await Promise.race([reader.read(), new Promise((r) => setTimeout(() => r({ value: null }), 200))]);
+    if (value) buf += decoder.decode(value, { stream: true });
+    sawMarker = buf.includes('public marker task');
+  }
+  ctrl.abort();
+  assert.ok(sawMarker, 'bob still receives public project events');
+  assert.ok(!buf.includes('SECRET TASK TITLE'), 'bob must not receive private project events');
+});
+
+await test('mentions of non-members do not create notifications', async () => {
+  const outsider = client();
+  const su = await outsider.post('/api/auth/signup', { name: 'Out Sider', email: 'outsider@example.com', password: 'password123' });
+  outsider.setToken(su.data.accessToken);
+  await alice.post(`/api/tasks/${task.id}/comments`, { body: `hi @[Out](${su.data.user.id})` });
+  const n = await outsider.get('/api/notifications');
+  assert.equal(n.data.items.length, 0);
+});
+
+await test('admins cannot demote or remove other admins; owners can', async () => {
+  const bobId = (await bob.get('/api/auth/me')).data.id;
+  const carol = client();
+  const su = await carol.post('/api/auth/signup', { name: 'Carol', email: 'carol@example.com', password: 'password123' });
+  carol.setToken(su.data.accessToken);
+  const inv = await alice.post(`/api/workspaces/${ws.id}/invites`, { emails: ['carol@example.com'], role: 'admin' });
+  await carol.post(`/api/invites/${inv.data.results[0].link.split('/invite/')[1]}/accept`);
+  await alice.patch(`/api/workspaces/${ws.id}/members/${bobId}`, { role: 'admin' });
+  const demote = await carol.patch(`/api/workspaces/${ws.id}/members/${bobId}`, { role: 'member' });
+  assert.equal(demote.status, 403);
+  const remove = await carol.del(`/api/workspaces/${ws.id}/members/${bobId}`);
+  assert.equal(remove.status, 403);
+  const ownerDemote = await alice.patch(`/api/workspaces/${ws.id}/members/${bobId}`, { role: 'member' });
+  assert.equal(ownerDemote.status, 204);
+});
+
+await test('change-password signs out other sessions', async () => {
+  const dave = client();
+  const su = await dave.post('/api/auth/signup', { name: 'Dave', email: 'dave@example.com', password: 'password123' });
+  dave.setToken(su.data.accessToken);
+  const dave2 = client();
+  const login = await dave2.post('/api/auth/login', { email: 'dave@example.com', password: 'password123' });
+  assert.equal(login.status, 200, JSON.stringify(login.data));
+  dave2.setToken(login.data.accessToken);
+  assert.equal((await dave.get('/api/auth/sessions')).data.length, 2);
+  const r = await dave2.post('/api/auth/change-password', { currentPassword: 'password123', newPassword: 'evennewer123' });
+  assert.equal(r.status, 204, JSON.stringify(r.data));
+  const sessions = await dave2.get('/api/auth/sessions');
+  assert.equal(sessions.data.length, 1);
+  assert.ok(sessions.data[0].current);
+  const stale = await dave.post('/api/auth/refresh');
+  assert.equal(stale.status, 401);
+});
+
+await test('oversized body → 413, malformed input → 400 (never 500)', async () => {
+  const big = await alice.post('/api/workspaces', { name: 'x'.repeat(2 * 1024 * 1024) }).catch(() => null);
+  assert.ok(big && big.status === 413, `expected 413, got ${big && big.status}`);
+  const nan = await alice.get('/api/notifications?limit=abc');
+  assert.equal(nan.status, 200);
+  const badPath = await alice.get('/api/tasks/%zz');
+  assert.notEqual(badPath.status, 500);
+  const badJson = await alice.call('POST', '/api/workspaces', null, { headers: { 'content-type': 'application/json' } , raw: '{bad' });
+  assert.equal(badJson.status, 400);
+});
+
+await test('attachments: SVG never renders inline; CSP + nosniff set', async () => {
+  const fd = new FormData();
+  fd.append('file', new Blob(['<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'], { type: 'image/svg+xml' }), 'evil.svg');
+  const up = await alice.post(`/api/tasks/${task.id}/attachments`, fd);
+  assert.equal(up.status, 201);
+  const r = await alice.call('GET', up.data[0].url);
+  assert.equal(r.status, 200, JSON.stringify(r.data));
+  assert.equal(r.headers.get('content-type'), 'application/octet-stream');
+  assert.ok((r.headers.get('content-disposition') || '').startsWith('attachment'));
+  assert.ok((r.headers.get('content-security-policy') || '').includes('sandbox'));
+});
+
+await test('X-Forwarded-For is ignored unless TRUST_PROXY (rate limit cannot be bypassed)', async () => {
+  let limited = false;
+  for (let i = 0; i < 15; i++) {
+    const r = await fetch(`${BASE}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': `10.0.0.${i}` }, body: JSON.stringify({ email: 'y@example.com', password: 'wrongwrong' }) });
+    if (r.status === 429) limited = true;
+  }
+  assert.ok(limited);
+});
+
 await test('rate limiting on login', async () => {
   const c = client();
   let limited = false;
@@ -416,6 +517,7 @@ await test('SPA fallback serves index or placeholder', async () => {
   assert.equal(r.status, 200);
   assert.ok((r.headers.get('content-type') || '').includes('text/html'));
 });
+
 
 server.kill('SIGTERM');
 rmSync(dataDir, { recursive: true, force: true });

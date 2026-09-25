@@ -2,7 +2,7 @@ import { Router, created, noContent } from '../lib/http.ts';
 import { db, now, inList } from '../db/index.ts';
 import { errors } from '../lib/errors.ts';
 import { newId } from '../lib/crypto.ts';
-import { requireProject, requireTask } from '../lib/access.ts';
+import { requireProject, requireTask, filterWorkspaceMembers } from '../lib/access.ts';
 import { taskFromRow, checklistFromRow, attachmentFromRow } from '../lib/serialize.ts';
 import { logActivity, notify, extractMentions, taskAudience, taskLink } from '../lib/services.ts';
 import { realtime } from '../lib/realtime.ts';
@@ -132,7 +132,7 @@ export function createTaskInternal(input: {
     if (input.assigneeId && input.assigneeId !== input.userId) {
       notify({ userId: input.assigneeId, type: 'assigned', title: `${actor.name} assigned you ${task.key}`, body: task.title, link, actorId: input.userId, email: { subject: `[${task.key}] ${task.title}`, lines: [`${actor.name} assigned you a task: ${task.title}`] } });
     }
-    for (const uid of extractMentions(task.description)) {
+    for (const uid of filterWorkspaceMembers(ws.workspace_id, extractMentions(task.description))) {
       notify({ userId: uid, type: 'mentioned', title: `${actor.name} mentioned you in ${task.key}`, body: task.title, link, actorId: input.userId });
     }
     if (task.parentId) realtime.publish(ws.workspace_id, { type: 'task.detail_changed', projectId: task.projectId, taskId: task.parentId });
@@ -287,7 +287,7 @@ export function updateTaskInternal(userId: string, taskId: string, patch: Record
     }
     if (changes.description) {
       const beforeMentions = new Set(extractMentions(String(changes.description.from || '')));
-      for (const uid of extractMentions(task.description)) {
+      for (const uid of filterWorkspaceMembers(ws.workspace_id, extractMentions(task.description))) {
         if (!beforeMentions.has(uid)) notify({ userId: uid, type: 'mentioned', title: `${actor.name} mentioned you in ${task.key}`, body: task.title, link, actorId: userId });
       }
     }

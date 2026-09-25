@@ -13,10 +13,55 @@ interface Client {
   lastSeen: number;
 }
 
+type VisibilityCheck = (userId: string, projectId: string) => boolean;
+
+/** Which project an event belongs to (null = workspace-wide). */
+function projectOf(event: RealtimeEvent): string | null {
+  switch (event.type) {
+    case 'task.created':
+    case 'task.updated':
+    case 'task.deleted':
+    case 'tasks.reordered':
+    case 'comment.created':
+    case 'comment.updated':
+    case 'comment.deleted':
+    case 'task.detail_changed':
+    case 'project.meta_changed':
+      return event.projectId;
+    case 'project.updated':
+      return event.project.id;
+    case 'activity':
+      return event.activity.projectId;
+    default:
+      return null;
+  }
+}
+
 class RealtimeHub {
   private clients = new Map<number, Client>();
   private seq = 0;
   private presenceTimers = new Map<string, NodeJS.Timeout>();
+  private canSee: VisibilityCheck = () => true;
+
+  /** Install the project-visibility predicate (private projects are only broadcast to their members). */
+  setVisibilityCheck(fn: VisibilityCheck) {
+    this.canSee = fn;
+  }
+
+  /** Drop every connection of a user to a workspace (e.g. when they are removed). */
+  disconnectUser(userId: string, workspaceId: string) {
+    for (const c of [...this.clients.values()]) {
+      if (c.userId === userId && c.workspaceId === workspaceId) {
+        this.clients.delete(c.id);
+        try {
+          c.res.end();
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+    this.schedulePresence(workspaceId);
+  }
 
   constructor() {
     setInterval(() => this.heartbeat(), 25_000).unref();
@@ -70,9 +115,19 @@ class RealtimeHub {
 
   /** Broadcast to everyone connected to a workspace. */
   publish(workspaceId: string, event: RealtimeEvent, opts: { excludeUserId?: string } = {}) {
+    const projectId = projectOf(event);
+    const visible = new Map<string, boolean>();
     for (const c of this.clients.values()) {
       if (c.workspaceId !== workspaceId) continue;
       if (opts.excludeUserId && c.userId === opts.excludeUserId) continue;
+      if (projectId) {
+        let ok = visible.get(c.userId);
+        if (ok === undefined) {
+          ok = this.canSee(c.userId, projectId);
+          visible.set(c.userId, ok);
+        }
+        if (!ok) continue;
+      }
       this.send(c, event);
     }
   }

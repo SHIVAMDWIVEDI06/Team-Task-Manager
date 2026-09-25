@@ -55,6 +55,7 @@ export function ListView(props: ViewProps) {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => new Set());
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const [focusId, setFocusId] = useState<string | null>(null);
+  const clickTimer = useRef<number | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -212,11 +213,17 @@ export function ListView(props: ViewProps) {
         onClick={(e) => {
           if (editing) return;
           if (e.shiftKey || e.metaKey || e.ctrlKey) { toggleSelect(task.id, e.shiftKey); return; }
-          openTask(task);
+          // Defer so a double-click on the title (rename) doesn't also open the panel.
+          if (clickTimer.current) window.clearTimeout(clickTimer.current);
+          if (e.detail > 1) return;
+          clickTimer.current = window.setTimeout(() => { clickTimer.current = null; openTask(task); }, 220);
         }}
         onFocus={() => setFocusId(task.id)}
         onKeyDown={(e) => onRowKey(e, task)}
-        onDoubleClick={(e) => { if ((e.target as HTMLElement).closest('.list-cell-title')) { e.preventDefault(); startEdit(task); } }}
+        onDoubleClick={(e) => {
+          if (clickTimer.current) { window.clearTimeout(clickTimer.current); clickTimer.current = null; }
+          if ((e.target as HTMLElement).closest('.list-cell-title')) { e.preventDefault(); startEdit(task); } else openTask(task);
+        }}
       >
         {cell('check', <span onClick={(e) => e.stopPropagation()}><Checkbox size={14} checked={selected} onChange={() => toggleSelect(task.id)} /></span>)}
         {!isMobile ? cell('key', <TaskKey task={task} />) : null}

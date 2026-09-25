@@ -66,7 +66,7 @@ workspacesRouter.get('/by-slug/:slug', (ctx) => {
 workspacesRouter.patch('/:id', async (ctx) => {
   const user = ctx.requireUser();
   requireMember(user.id, ctx.params.id, 'admin');
-  const body = await ctx.json(v.object({ name: v.string({ min: 1, max: LIMITS.nameMax }).optional(), logoUrl: v.string({ max: 500 }).nullable().optional() }));
+  const body = await ctx.json(v.object({ name: v.string({ min: 1, max: LIMITS.nameMax }).optional(), logoUrl: v.string({ max: 500, pattern: /^(https:\/\/|\/api\/files\/)/ }).nullable().optional() }));
   const sets: string[] = [];
   const params: (string | null)[] = [];
   if (body.name !== undefined) {
@@ -113,6 +113,7 @@ workspacesRouter.patch('/:id/members/:userId', async (ctx) => {
   const targetRole = roleIn(ctx.params.userId, ctx.params.id);
   if (!targetRole) throw errors.notFound('Member');
   if (ROLE_RANK[body.role] > ROLE_RANK[myRole] || ROLE_RANK[targetRole] > ROLE_RANK[myRole]) throw errors.forbidden('You cannot assign a role above your own');
+  if (myRole !== 'owner' && ROLE_RANK[targetRole] >= ROLE_RANK[myRole] && ctx.params.userId !== user.id) throw errors.forbidden('Only owners can change the role of other admins');
   if (targetRole === 'owner' && body.role !== 'owner') {
     const owners = db.one<{ c: number }>(`SELECT COUNT(*) AS c FROM workspace_members WHERE workspace_id = ? AND role = 'owner'`, [ctx.params.id])!;
     if (owners.c <= 1) throw errors.badRequest('A workspace needs at least one owner');
@@ -133,6 +134,7 @@ workspacesRouter.delete('/:id/members/:userId', (ctx) => {
   if (!isSelf) {
     if (ROLE_RANK[myRole] < ROLE_RANK.admin) throw errors.forbidden();
     if (ROLE_RANK[targetRole] > ROLE_RANK[myRole]) throw errors.forbidden('You cannot remove someone with a higher role');
+    if (myRole !== 'owner' && ROLE_RANK[targetRole] >= ROLE_RANK[myRole]) throw errors.forbidden('Only owners can remove other admins');
   }
   if (targetRole === 'owner') {
     const owners = db.one<{ c: number }>(`SELECT COUNT(*) AS c FROM workspace_members WHERE workspace_id = ? AND role = 'owner'`, [ctx.params.id])!;
@@ -145,6 +147,7 @@ workspacesRouter.delete('/:id/members/:userId', (ctx) => {
   });
   logActivity({ workspaceId: ctx.params.id, actorId: user.id, type: 'member.removed', data: { userId: ctx.params.userId, left: isSelf } });
   realtime.publish(ctx.params.id, { type: 'members.changed', workspaceId: ctx.params.id });
+  realtime.disconnectUser(ctx.params.userId, ctx.params.id);
   return noContent();
 });
 

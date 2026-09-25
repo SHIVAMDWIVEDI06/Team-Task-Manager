@@ -13,7 +13,7 @@ export const usersRouter = new Router('/api');
 
 usersRouter.patch('/me', async (ctx) => {
   const user = ctx.requireUser();
-  const body = await ctx.json(v.object({ name: v.string({ min: 1, max: LIMITS.nameMax }).optional(), timezone: v.string({ max: 64 }).optional(), avatarUrl: v.string({ max: 500 }).nullable().optional() }));
+  const body = await ctx.json(v.object({ name: v.string({ min: 1, max: LIMITS.nameMax }).optional(), timezone: v.string({ max: 64 }).optional(), avatarUrl: v.string({ max: 500, pattern: /^(https:\/\/|\/api\/files\/)/ }).nullable().optional() }));
   if (body.name !== undefined) db.run('UPDATE users SET name = ? WHERE id = ?', [body.name, user.id]);
   if (body.timezone !== undefined) db.run('UPDATE users SET timezone = ? WHERE id = ?', [body.timezone, user.id]);
   if (body.avatarUrl !== undefined) db.run('UPDATE users SET avatar_url = ? WHERE id = ?', [body.avatarUrl, user.id]);

@@ -75,7 +75,7 @@ export function applyEvent(e: RealtimeEvent) {
       invalidate(['workspaces', 'workspace']);
       break;
     case 'members.changed':
-      invalidate(['members', 'bundle', 'invites', 'workspaces', 'dashboard']);
+      invalidate(['members', 'bundle', 'invites', 'workspaces', 'workspace', 'dashboard', 'projects']);
       break;
     case 'notification':
       setQueryData<{ items: Notification[]; unread: number }>('notifications', (prev) => (prev ? { items: [e.notification, ...prev.items].slice(0, 200), unread: prev.unread + 1 } : prev));

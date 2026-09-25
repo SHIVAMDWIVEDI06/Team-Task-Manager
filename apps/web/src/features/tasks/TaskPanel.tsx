@@ -23,6 +23,9 @@ const inInput = (e: KeyboardEvent) => {
   return Boolean(t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable));
 };
 
+/** Ids of tasks deleted from this client (so the realtime echo doesn't toast twice). */
+export const locallyDeleted = new Set<string>();
+
 export function TaskPanelHost() {
   const ws = useWorkspaceOptional();
   const [params, setParams] = useSearchParams();
@@ -76,7 +79,7 @@ function TaskPanel({ ws, taskKey, close, open }: { ws: WorkspaceCtx; taskKey: st
     if (!id) return;
     return onRealtime('task.deleted', (e) => {
       if (e.type === 'task.deleted' && e.taskId === id) {
-        toast.info(`${taskKey} was deleted`);
+        if (!locallyDeleted.has(id)) toast.info(`${taskKey} was deleted`);
         close();
       }
     });
@@ -203,6 +206,7 @@ function TaskPanelContent({ ws, task, close, open, wide, setWide }: { ws: Worksp
   const remove = async () => {
     if (!(await confirm({ title: `Delete ${task.key}?`, description: 'This permanently deletes the task, its subtasks, comments and attachments.', danger: true, confirmLabel: 'Delete' }))) return;
     try {
+      locallyDeleted.add(task.id);
       await deleteTask(task);
       toast.success(`${task.key} deleted`);
       close();

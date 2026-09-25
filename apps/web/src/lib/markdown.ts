@@ -6,32 +6,34 @@ function esc(s: string): string {
 
 function safeUrl(url: string): string | null {
   const u = url.trim();
+  if (/^\/\//.test(u)) return null; // protocol-relative
   if (/^(https?:\/\/|mailto:|\/)/i.test(u)) return u;
   return null;
 }
 
 function inline(text: string): string {
   let s = esc(text);
-  // code spans first so their content is not further processed
-  const codes: string[] = [];
-  s = s.replace(/`([^`\n]+)`/g, (_, c) => {
-    codes.push(`<code>${c}</code>`);
-    return `\u0000${codes.length - 1}\u0000`;
-  });
+  // Placeholders protect code spans and links from the emphasis pass.
+  const slots: string[] = [];
+  const hold = (html: string) => {
+    slots.push(html);
+    return `\u0000${slots.length - 1}\u0000`;
+  };
+  s = s.replace(/`([^`\n]+)`/g, (_, c) => hold(`<code>${c}</code>`));
   // mentions @[Name](id)
-  s = s.replace(/@\[([^\]]+)\]\(([A-Za-z0-9_-]{6,32})\)/g, (_, name, id) => `<span class="mention" data-user-id="${id}">@${name}</span>`);
-  // images ![alt](url)
-  s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (_, alt, url) => {
+  s = s.replace(/@\[([^\]]+)\]\(([A-Za-z0-9_-]{6,32})\)/g, (_, name, id) => hold(`<span class="mention" data-user-id="${id}">@${name}</span>`));
+  // images ![alt](url) and links [text](url) — URL may contain one level of balanced parentheses
+  const URL_PART = '((?:[^()\\s]|\\([^()\\s]*\\))+)';
+  s = s.replace(new RegExp(`!\\[([^\\]]*)\\]\\(${URL_PART}\\)`, 'g'), (_, alt, url) => {
     const u = safeUrl(url);
-    return u ? `<img src="${esc(u)}" alt="${alt}" loading="lazy">` : alt;
+    return u ? hold(`<img src="${esc(u)}" alt="${alt}" loading="lazy">`) : alt;
   });
-  // links [text](url)
-  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, label, url) => {
+  s = s.replace(new RegExp(`\\[([^\\]]+)\\]\\(${URL_PART}\\)`, 'g'), (_, label, url) => {
     const u = safeUrl(url);
-    return u ? `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${label}</a>` : label;
+    return u ? hold(`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${label}</a>`) : label;
   });
   // bare URLs
-  s = s.replace(/(^|[\s(])((?:https?:\/\/)[^\s<)]+)/g, (_, pre, url) => `${pre}<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
+  s = s.replace(/(^|[\s(])((?:https?:\/\/)[^\s<)]+)/g, (_, pre, url) => `${pre}${hold(`<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`)}`);
   // bold, italic, strike
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/__([^_]+)__/g, '<strong>$1</strong>');
@@ -40,7 +42,7 @@ function inline(text: string): string {
   s = s.replace(/~~([^~]+)~~/g, '<del>$1</del>');
   // task keys like ENG-42 → clickable
   s = s.replace(/(^|[\s(])([A-Z][A-Z0-9]{1,5}-\d+)(?![\w-])/g, (_, pre, key) => `${pre}<a class="task-ref" data-task-key="${key}" href="?task=${key}">${key}</a>`);
-  s = s.replace(/\u0000(\d+)\u0000/g, (_, i) => codes[Number(i)]);
+  s = s.replace(/\u0000(\d+)\u0000/g, (_, i) => slots[Number(i)]);
   return s;
 }
 

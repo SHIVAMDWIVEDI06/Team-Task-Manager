@@ -8,6 +8,14 @@ export interface AuthUser {
   id: string;
 }
 
+export function safeDecode(s: string): string {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+}
+
 export class Ctx {
   req: IncomingMessage;
   res: ServerResponse;
@@ -33,9 +41,18 @@ export class Ctx {
     this.query = this.url.searchParams;
   }
 
+  /** Set to true when running behind a trusted reverse proxy (Railway, nginx, …). */
+  static trustProxy = false;
+
   get ip(): string {
-    const fwd = this.req.headers['x-forwarded-for'];
-    if (typeof fwd === 'string' && fwd) return fwd.split(',')[0].trim();
+    if (Ctx.trustProxy) {
+      const fwd = this.req.headers['x-forwarded-for'];
+      if (typeof fwd === 'string' && fwd) {
+        // The last entry is the one appended by our own proxy; earlier ones are client-controlled.
+        const parts = fwd.split(',').map((s) => s.trim()).filter(Boolean);
+        if (parts.length) return parts[parts.length - 1];
+      }
+    }
     return this.req.socket.remoteAddress || 'unknown';
   }
 
@@ -51,7 +68,7 @@ export class Ctx {
     for (const part of raw.split(';')) {
       const i = part.indexOf('=');
       if (i === -1) continue;
-      out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim());
+      out[part.slice(0, i).trim()] = safeDecode(part.slice(i + 1).trim());
     }
     return out;
   }
@@ -82,11 +99,17 @@ export class Ctx {
     return new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
       let size = 0;
+      let rejected = false;
       this.req.on('data', (c: Buffer) => {
+        if (rejected) return;
         size += c.length;
         if (size > limit) {
+          rejected = true;
+          chunks.length = 0;
+          // Respond with 413 first, then drop the connection so the client stops streaming.
+          this.res.once('finish', () => this.req.destroy());
+          this.res.setHeader('Connection', 'close');
           reject(errors.tooLarge());
-          this.req.destroy();
           return;
         }
         chunks.push(c);
@@ -287,7 +310,7 @@ export class Router {
       pathMatched = true;
       if (r.method !== method && !(r.method === 'GET' && method === 'HEAD')) continue;
       const params: Record<string, string> = {};
-      r.keys.forEach((k, i) => (params[k] = decodeURIComponent(m[i + 1])));
+      r.keys.forEach((k, i) => (params[k] = safeDecode(m[i + 1])));
       return { handler: r.handler, params };
     }
     return pathMatched ? 'method_not_allowed' : null;

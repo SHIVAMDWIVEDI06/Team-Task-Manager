@@ -77,3 +77,18 @@ export function requireTask(userId: string, taskId: string, need: 'view' | 'edit
 export const VISIBLE_PROJECTS_SQL = `(p.visibility = 'public'
   OR EXISTS (SELECT 1 FROM project_members pm WHERE pm.project_id = p.id AND pm.user_id = ?)
   OR EXISTS (SELECT 1 FROM workspace_members wm WHERE wm.workspace_id = p.workspace_id AND wm.user_id = ? AND wm.role IN ('owner','admin')))`;
+
+/** True when the user may see the project (public, member of a private project, or admin/owner). */
+export function canSeeProject(userId: string, projectId: string): boolean {
+  const p = db.one<{ workspace_id: string; visibility: string }>('SELECT workspace_id, visibility FROM projects WHERE id = ?', [projectId]);
+  if (!p) return false;
+  const role = roleIn(userId, p.workspace_id);
+  if (!role) return false;
+  if (p.visibility === 'public' || ROLE_RANK[role] >= ROLE_RANK.admin) return true;
+  return Boolean(db.one('SELECT 1 FROM project_members WHERE project_id = ? AND user_id = ?', [projectId, userId]));
+}
+
+/** Keep only ids that are members of the workspace (used to validate @mentions). */
+export function filterWorkspaceMembers(workspaceId: string, userIds: string[]): string[] {
+  return userIds.filter((id) => Boolean(roleIn(id, workspaceId)));
+}

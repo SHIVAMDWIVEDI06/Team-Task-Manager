@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import type { Ctx } from './http.ts';
+import { safeDecode, type Ctx } from './http.ts';
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -69,7 +69,7 @@ export function serveSpa(root: string) {
       ctx.send(404, { error: { code: 'not_found', message: 'Not found' } });
       return;
     }
-    const rel = decodeURIComponent(ctx.path);
+    const rel = safeDecode(ctx.path);
     const file = path.normalize(path.join(root, rel));
     if (file.startsWith(root) && rel !== '/' && path.extname(rel)) {
       const isHashed = /-[A-Z0-9]{8}\.(js|css)$/i.test(rel);
