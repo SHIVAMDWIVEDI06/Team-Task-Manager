@@ -6,6 +6,7 @@ import { db, now } from '../db/index.ts';
 import { errors } from '../lib/errors.ts';
 import { newId } from '../lib/crypto.ts';
 import { config } from '../config.ts';
+import { verifyJwt } from '../lib/crypto.ts';
 import { requireTask } from '../lib/access.ts';
 import { commentFromRow, attachmentFromRow, timeEntryFromRow, activityFromRow } from '../lib/serialize.ts';
 import { logActivity, notify, extractMentions, taskAudience, taskLink, ACTIVITY_SELECT } from '../lib/services.ts';
@@ -110,6 +111,12 @@ collabRouter.post('/tasks/:id/attachments', async (ctx) => {
 });
 
 collabRouter.get('/attachments/:id/:filename', (ctx) => {
+  // Direct links (e.g. from a comment opened in a new tab) may carry the access token as ?token=
+  if (!ctx.user) {
+    const t = ctx.query.get('token');
+    const payload = t ? verifyJwt(t, config.jwtSecret) : null;
+    if (payload) ctx.user = { id: payload.sub };
+  }
   const user = ctx.requireUser();
   const row = db.one<{ task_id: string; storage_key: string; filename: string; mime: string }>('SELECT task_id, storage_key, filename, mime FROM attachments WHERE id = ?', [ctx.params.id]);
   if (!row) throw errors.notFound('Attachment');

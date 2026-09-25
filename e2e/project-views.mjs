@@ -131,6 +131,11 @@ const renamed = (await api(`/api/projects/${project.id}/tasks`)).find((t) => t.i
 assert(renamed.title === 'E2E renamed task', 'inline rename persisted');
 
 // ---- List: keyboard navigation ----
+// close the task panel if the double-click opened it
+if (await page.$('.task-panel')) {
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
+}
 await page.click('.list-foot');
 await page.keyboard.press('j');
 await page.waitForTimeout(80);

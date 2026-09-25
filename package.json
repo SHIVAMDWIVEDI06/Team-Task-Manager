@@ -15,7 +15,8 @@
     "start": "node --no-warnings=ExperimentalWarning dist/api/server.js",
     "typecheck": "tsc -p apps/api/tsconfig.json && tsc -p apps/web/tsconfig.json",
     "seed": "node --no-warnings=ExperimentalWarning apps/api/src/db/seed.ts",
-    "test:e2e": "node --no-warnings=ExperimentalWarning e2e/run.mjs"
+    "test:e2e": "node e2e/run.mjs",
+    "test": "node --no-warnings=ExperimentalWarning e2e/api.test.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

@@ -78,8 +78,20 @@
 .list-head .list-cell-title {
   padding-left: 22px;
 }
+.list-cell-labels {
+  overflow: hidden;
+  min-width: 0;
+}
 .list-cell-labels .row {
   flex-wrap: nowrap;
+  overflow: hidden;
+  min-width: 0;
+}
+.list-cell-labels .field-btn,
+.list-cell-labels .field-btn .btn-label,
+.list-cell-labels .field-btn .btn-icon-content {
+  max-width: 100%;
+  min-width: 0;
   overflow: hidden;
 }
 .list-cell-labels .field-btn {

@@ -51,7 +51,7 @@ export const config = {
   dbFile: env.DB_FILE || path.join(dataDir, 'teamtask.db'),
   uploadsDir: path.join(dataDir, 'uploads'),
   maxUploadBytes: Number(env.MAX_UPLOAD_MB || 25) * 1024 * 1024,
-  webDist: path.resolve(env.WEB_DIST || (fs.existsSync(path.resolve('dist/web')) ? 'dist/web' : 'apps/web/dist')),
+  webDist: path.resolve(env.WEB_DIST || 'dist/web'),
   smtp: env.SMTP_HOST
     ? {
         host: env.SMTP_HOST,

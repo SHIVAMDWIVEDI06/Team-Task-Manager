@@ -32,6 +32,17 @@ const groups: { title: string; items: [string, string[]][] }[] = [
       ['Calendar', ['3']],
       ['Timeline', ['4']],
       ['Toggle filters', ['F']],
+      ['List: move / open / select', ['J', 'K', '↵', 'X']],
+      ['List: rename task', ['R']],
+    ],
+  },
+  {
+    title: 'Inbox',
+    items: [
+      ['Move between notifications', ['J', 'K']],
+      ['Open notification', ['↵']],
+      ['Toggle read / unread', ['E']],
+      ['Delete notification', ['⌫']],
     ],
   },
   {

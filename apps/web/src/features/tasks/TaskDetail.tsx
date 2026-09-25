@@ -227,7 +227,7 @@ export function TaskDetail({ task, bundle, canEdit, canManage, openTask, classNa
             <span className="row gap-2">
               <span className={cx('task-prop-text tabular', task.estimateMinutes && task.timeSpentMinutes > task.estimateMinutes && 'is-over')} title={task.estimateMinutes ? `${formatMinutes(task.timeSpentMinutes)} of ${formatMinutes(task.estimateMinutes)} estimated` : undefined}>
                 {formatMinutes(task.timeSpentMinutes)}
-                {task.estimateMinutes ? <span className="muted"> / {formatMinutes(task.estimateMinutes)}</span> : null}
+                {task.estimateMinutes ? <span className="muted">{' / '}{formatMinutes(task.estimateMinutes)}</span> : null}
               </span>
               {canEdit ? <Button size="sm" variant="ghost" icon="clock" onClick={openTimeForm} className="task-prop-action">Log time</Button> : null}
             </span>

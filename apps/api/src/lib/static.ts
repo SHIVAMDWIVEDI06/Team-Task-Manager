@@ -72,8 +72,8 @@ export function serveSpa(root: string) {
     const rel = decodeURIComponent(ctx.path);
     const file = path.normalize(path.join(root, rel));
     if (file.startsWith(root) && rel !== '/' && path.extname(rel)) {
-      const isHashed = /-[A-Z0-9]{8}\.(js|css)$/i.test(rel) || rel.startsWith('/assets/');
-      if (sendFile(ctx, file, { cache: isHashed ? 'public, max-age=31536000, immutable' : 'public, max-age=3600' })) return;
+      const isHashed = /-[A-Z0-9]{8}\.(js|css)$/i.test(rel);
+      if (sendFile(ctx, file, { cache: isHashed ? 'public, max-age=31536000, immutable' : 'no-cache' })) return;
       ctx.send(404, 'Not found');
       return;
     }
