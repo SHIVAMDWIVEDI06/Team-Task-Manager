@@ -1,0 +1,158 @@
+/* ---------- Create task dialog ---------- */
+.ct-dialog .dialog-header {
+  padding: var(--s-3) var(--s-4) 0 var(--s-4);
+  align-items: center;
+}
+.ct-dialog .dialog-title {
+  font-size: var(--fs-md);
+  font-weight: 500;
+  color: var(--fg-secondary);
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+.ct-dialog .dialog-body {
+  padding: var(--s-2) var(--s-6) var(--s-4);
+}
+.ct-dialog .dialog-footer {
+  padding: var(--s-3) var(--s-5);
+}
+.ct-header-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.ct-project-select {
+  max-width: 260px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.ct-project-select .btn-label {
+  min-width: 0;
+}
+.ct-project-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  font-size: 10px;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ct-created-count {
+  margin-left: 6px;
+}
+.ct-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.ct-title {
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  padding: 6px 0;
+  color: var(--fg);
+}
+.ct-title::placeholder {
+  color: var(--fg-faint);
+  font-weight: 500;
+}
+.ct-title.is-error {
+  box-shadow: inset 0 -2px 0 var(--danger);
+}
+.ct-token-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.ct-token {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  background: var(--brand-soft);
+  color: var(--brand-600);
+  border-radius: 4px;
+  padding: 0 5px;
+}
+:root[data-theme='dark'] .ct-token {
+  color: var(--brand-300);
+}
+.ct-dialog .editor.is-compact .editor-textarea {
+  font-size: var(--fs-base);
+}
+.ct-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: var(--s-1);
+}
+.ct-fields .field-btn,
+.ct-fields .btn {
+  max-width: 220px;
+}
+.ct-fields .btn-outline {
+  background: var(--surface);
+}
+.ct-hints {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  padding-top: var(--s-2);
+  border-top: 1px dashed var(--border-subtle);
+}
+.ct-hints b {
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+.ct-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  width: 100%;
+}
+.ct-footer .switch-row {
+  gap: 8px;
+}
+.ct-footer .switch-label {
+  font-size: var(--fs-md);
+  color: var(--fg-secondary);
+}
+.ct-submit-kbd {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 8px;
+  opacity: 0.75;
+}
+.ct-submit-kbd .kbd {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: inherit;
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+  line-height: 14px;
+  padding: 0 4px;
+}
+@media (max-width: 720px) {
+  .ct-dialog .dialog-body {
+    padding: var(--s-2) var(--s-4) var(--s-4);
+  }
+  .ct-submit-kbd,
+  .ct-hint-project {
+    display: none;
+  }
+  .ct-title {
+    font-size: var(--fs-lg);
+  }
+}
